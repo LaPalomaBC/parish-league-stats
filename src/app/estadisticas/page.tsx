@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import EstadisticasClient from './EstadisticasClient';
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function EstadisticasPage() {
-  return <EstadisticasClient />;
+  return (
+    <Suspense fallback={<div className="page-container"><p>Cargando estadísticas...</p></div>}>
+      <EstadisticasClient />
+    </Suspense>
+  );
 }

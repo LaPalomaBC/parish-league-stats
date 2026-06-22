@@ -278,7 +278,7 @@ export default function StandingsChart({ teamIds, showTeamFilter }: StandingsCha
                   fontSize: '13px',
                   boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                 }}
-                formatter={(value: any, name: string) => [`${value}º`, name]}
+                formatter={(value: any, name: any) => [`${value}º`, String(name)]}
                 itemSorter={(item: any) => item.value as number}
               />
               {!showTeamFilter && (
