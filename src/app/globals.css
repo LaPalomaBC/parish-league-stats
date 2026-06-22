@@ -577,6 +577,77 @@ a:hover {
 }
 
 /* ============================================
+   Match Detail Header — Score banner
+   ============================================ */
+.match-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.match-header-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.match-header-team-name {
+  font-weight: 700;
+  font-size: var(--text-lg);
+  margin-top: var(--space-2);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.match-header-shortname {
+  display: none;
+}
+
+.match-header-score {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.match-header-dash {
+  color: var(--color-text-tertiary);
+  font-size: 0.6em;
+}
+
+@media (max-width: 768px) {
+  .match-header-row {
+    gap: var(--space-3);
+  }
+
+  .match-header-team-name {
+    font-size: var(--text-sm);
+  }
+
+  .match-header-fullname {
+    display: none;
+  }
+
+  .match-header-shortname {
+    display: inline;
+  }
+
+  .match-header-score {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    gap: var(--space-2);
+  }
+}
+
+/* ============================================
    Team Logo — Gradient pill
    ============================================ */
 .team-logo {

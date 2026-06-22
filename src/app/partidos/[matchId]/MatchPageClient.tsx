@@ -167,7 +167,7 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
         style={{
           textAlign: 'center',
           marginBottom: 'var(--space-8)',
-          padding: 'var(--space-8) var(--space-6)',
+          padding: 'var(--space-6) var(--space-4)',
         }}
         id="match-header"
       >
@@ -181,41 +181,25 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
           Jornada {match.matchday} — {formatDate(match.matchDate)}
         </div>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 'var(--space-8)',
-          flexWrap: 'wrap',
-        }}>
+        <div className="match-header-row">
           {/* Home */}
-          <Link href={`/equipos/${homeTeam.id}`} style={{ textDecoration: 'none', color: 'inherit', textAlign: 'center' }}>
-            <TeamLogo team={homeTeam} size="xl" />
-            <div style={{
-              fontWeight: 700,
-              fontSize: 'var(--text-lg)',
-              marginTop: 'var(--space-2)',
+          <Link href={`/equipos/${homeTeam.id}`} className="match-header-team">
+            <TeamLogo team={homeTeam} size="lg" />
+            <div className="match-header-team-name" style={{
               opacity: match.isPlayed && !homeWon ? 0.5 : 1,
             }}>
-              {homeTeam.name}
+              <span className="match-header-fullname">{homeTeam.name}</span>
+              <span className="match-header-shortname">{homeTeam.shortName}</span>
             </div>
           </Link>
 
           {/* Score */}
           {match.isPlayed ? (
-            <div style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2rem, 6vw, 3.5rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.03em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-4)',
-            }}>
+            <div className="match-header-score">
               <span style={{ color: homeWon ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>
                 {match.homeScore}
               </span>
-              <span style={{ color: 'var(--color-text-tertiary)', fontSize: '0.6em' }}>—</span>
+              <span className="match-header-dash">—</span>
               <span style={{ color: awayWon ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>
                 {match.awayScore}
               </span>
@@ -223,10 +207,10 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
           ) : (
             <div style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'var(--text-xl)',
+              fontSize: 'var(--text-base)',
               fontWeight: 700,
               color: 'var(--color-primary)',
-              padding: 'var(--space-3) var(--space-6)',
+              padding: 'var(--space-2) var(--space-4)',
               background: 'var(--color-primary-bg)',
               borderRadius: 'var(--radius-lg)',
             }}>
@@ -235,15 +219,13 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
           )}
 
           {/* Away */}
-          <Link href={`/equipos/${awayTeam.id}`} style={{ textDecoration: 'none', color: 'inherit', textAlign: 'center' }}>
-            <TeamLogo team={awayTeam} size="xl" />
-            <div style={{
-              fontWeight: 700,
-              fontSize: 'var(--text-lg)',
-              marginTop: 'var(--space-2)',
+          <Link href={`/equipos/${awayTeam.id}`} className="match-header-team">
+            <TeamLogo team={awayTeam} size="lg" />
+            <div className="match-header-team-name" style={{
               opacity: match.isPlayed && !awayWon ? 0.5 : 1,
             }}>
-              {awayTeam.name}
+              <span className="match-header-fullname">{awayTeam.name}</span>
+              <span className="match-header-shortname">{awayTeam.shortName}</span>
             </div>
           </Link>
         </div>
