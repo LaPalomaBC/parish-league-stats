@@ -1,48 +1,50 @@
 /**
  * serverData.ts — Server-side data access
  *
- * Reads data directly from JSON files on disk.
+ * Reads data from Supabase.
  * Use this in Server Components and generateStaticParams/generateMetadata.
  * For Client Components, use DataContext instead.
  */
-import { promises as fs } from 'fs';
-import path from 'path';
+import { supabase } from './supabase';
 import type { Team, Player, Match, PlayerStats, StandingRow } from './types';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-
-async function readJSON<T>(filename: string, fallback: T): Promise<T> {
+async function readFromSupabase<T>(key: string, fallback: T): Promise<T> {
   try {
-    const filepath = path.join(DATA_DIR, filename);
-    const raw = await fs.readFile(filepath, 'utf-8');
-    return JSON.parse(raw) as T;
+    const { data, error } = await supabase
+      .from('data_store')
+      .select('value')
+      .eq('key', key)
+      .single();
+
+    if (error || !data) return fallback;
+    return data.value as T;
   } catch {
     return fallback;
   }
 }
 
 export async function getTeamsFromDisk(): Promise<Team[]> {
-  return readJSON<Team[]>('teams.json', []);
+  return readFromSupabase<Team[]>('teams', []);
 }
 
 export async function getPlayersFromDisk(): Promise<Player[]> {
-  return readJSON<Player[]>('players.json', []);
+  return readFromSupabase<Player[]>('players', []);
 }
 
 export async function getMatchesFromDisk(): Promise<Match[]> {
-  return readJSON<Match[]>('matches.json', []);
+  return readFromSupabase<Match[]>('matches', []);
 }
 
 export async function getPlayerStatsFromDisk(): Promise<PlayerStats[]> {
-  return readJSON<PlayerStats[]>('playerStats.json', []);
+  return readFromSupabase<PlayerStats[]>('playerStats', []);
 }
 
 export async function getStandingsFromDisk(): Promise<StandingRow[]> {
-  return readJSON<StandingRow[]>('standings.json', []);
+  return readFromSupabase<StandingRow[]>('standings', []);
 }
 
 // ============================================
-// HELPERS (async, disk-based)
+// HELPERS
 // ============================================
 
 export async function getPlayedMatchesFromDisk(): Promise<Match[]> {
