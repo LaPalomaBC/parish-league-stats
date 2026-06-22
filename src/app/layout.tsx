@@ -56,6 +56,11 @@ export default function RootLayout({
         <LeagueDataProvider>
           <Navbar />
           <main>{children}</main>
+          <footer className="site-footer">
+            <span>Created by <strong>Josugeos</strong></span>
+            <span className="footer-dot">·</span>
+            <span>Parish League 2025/26</span>
+          </footer>
           <StatsChat />
         </LeagueDataProvider>
       </body>
