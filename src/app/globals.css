@@ -947,12 +947,8 @@ a:hover {
     min-width: 24px;
   }
 
-  /* Hide desktop nav links and settings icon on mobile */
+  /* Hide desktop nav links on mobile (keep settings gear visible) */
   .navbar-links {
-    display: none !important;
-  }
-
-  .navbar-inner > a[title="Configuración"] {
     display: none !important;
   }
 
