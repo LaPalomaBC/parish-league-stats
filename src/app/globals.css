@@ -338,14 +338,52 @@ a:hover {
   font-weight: 600;
 }
 
-/* Mobile menu button */
+/* Mobile menu button (legacy, hidden) */
 .mobile-menu-btn {
   display: none;
-  background: none;
-  border: none;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  padding: var(--space-2);
+}
+
+/* ============================================
+   Mobile Bottom Tab Bar
+   ============================================ */
+.mobile-tab-bar {
+  display: none; /* shown via media query */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--color-border);
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 0;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-text-tertiary);
+  font-size: 10px;
+  font-weight: 500;
+  transition: color 0.15s ease;
+  min-width: 56px;
+}
+
+.mobile-tab-item.active {
+  color: var(--color-primary);
+}
+
+.mobile-tab-item span {
+  line-height: 1;
 }
 
 /* ============================================
@@ -787,7 +825,7 @@ a:hover {
 
 @media (max-width: 768px) {
   :root {
-    --nav-height: 48px;
+    --nav-height: 52px;
   }
 
   .page-container {
@@ -837,27 +875,28 @@ a:hover {
     min-width: 24px;
   }
 
+  /* Hide desktop nav links and settings icon on mobile */
   .navbar-links {
-    display: none;
+    display: none !important;
   }
 
-  .mobile-menu-btn {
-    display: block;
+  .navbar-inner > a[title="Configuración"] {
+    display: none !important;
   }
 
-  .navbar-links.open {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: var(--nav-height);
-    left: 0;
-    right: 0;
-    background: var(--color-bg-nav);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: var(--shadow-lg);
+  /* Simpler top bar on mobile: just logo */
+  .navbar {
+    height: 52px;
+  }
+
+  /* Show bottom tab bar on mobile */
+  .mobile-tab-bar {
+    display: flex !important;
+  }
+
+  /* Add bottom padding so content doesn't hide behind tab bar */
+  .page-container {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
