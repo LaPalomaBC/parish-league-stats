@@ -29,6 +29,15 @@ export const metadata: Metadata = {
     "basketball",
     "madrid",
   ],
+  icons: {
+    icon: [
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
   openGraph: {
     title: "Parish League Stats",
     description: "Estadísticas de la Liga Parroquial de Baloncesto",
