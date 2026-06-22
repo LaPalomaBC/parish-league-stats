@@ -353,29 +353,30 @@ a:hover {
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-top: 1px solid var(--color-border);
   justify-content: space-around;
   align-items: center;
-  padding: 6px 0;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 0 0;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
 }
 
 .mobile-tab-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 4px 8px;
+  gap: 4px;
+  padding: 8px 10px;
   border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--color-text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   transition: color 0.15s ease;
-  min-width: 56px;
+  min-width: 60px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-tab-item.active {
@@ -967,7 +968,7 @@ a:hover {
 
   /* Add bottom padding so content doesn't hide behind tab bar */
   .page-container {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
@@ -1047,7 +1048,7 @@ a:hover {
 
   /* Chat widget on mobile — above bottom tab bar */
   .stats-chat-fab {
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
     right: 16px !important;
     width: 50px !important;
     height: 50px !important;
@@ -1055,9 +1056,9 @@ a:hover {
 
   .stats-chat-panel {
     width: calc(100vw - 32px) !important;
-    max-height: calc(100vh - 200px) !important;
+    max-height: calc(100vh - 220px) !important;
     right: 16px !important;
-    bottom: calc(136px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
