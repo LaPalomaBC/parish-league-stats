@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
-import Link from 'next/link';
+import { useMemo, useCallback, useRef, useState } from 'react';
 import {
   Target, Shield, TrendingUp, Clock, Crosshair, Brain,
-  Activity, Zap, Users, Hand,
+  Activity, Zap, Hand, Download, Share2, Loader2,
 } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
 import type { Team } from '@/lib/types';
@@ -26,7 +26,7 @@ interface TeamAdvStat {
   label: string;
   shortLabel: string;
   suffix: string;
-  desc: boolean; // true = higher is better
+  desc: boolean;
   icon: React.ReactNode;
   decimals?: number;
   description: string;
@@ -77,7 +77,6 @@ export default function TeamAdvancedStatsTab() {
     return aggregateTeamAdvanced(playerStats, matches, playedMatchIds, teams);
   }, [playerStats, matches, playedMatchIds, teams]);
 
-  // Build ranked lists for each stat
   const ranked = useMemo(() => {
     function rank(fn: (t: typeof aggs[0]) => number, desc: boolean) {
       return [...aggs]
@@ -86,7 +85,6 @@ export default function TeamAdvancedStatsTab() {
     }
 
     return {
-      // Ratings
       ortg: rank(t => { const p = estimatePossessions(t.fga, t.fta, t.to, t.orb); return calcORtg(t.pts, p); }, true),
       drtg: rank(t => { const p = estimatePossessions(t.oppFga, t.oppFta, t.oppTo, t.oppOrb); return calcDRtg(t.oppPts, p); }, false),
       netrtg: rank(t => {
@@ -95,19 +93,15 @@ export default function TeamAdvancedStatsTab() {
         return calcORtg(t.pts, oP) - calcDRtg(t.oppPts, dP);
       }, true),
       pace: rank(t => { const p = estimatePossessions(t.fga, t.fta, t.to, t.orb); return calcPace(p, t.teamMp); }, true),
-      // Shooting
       ts: rank(t => calcTeamTS(t.pts, t.fga, t.fta), true),
       efg: rank(t => calcTeamEFG(t.fgMade, t.threeMade, t.fga), true),
       ftRate: rank(t => calcFTRate(t.fta, t.fga), true),
       threeRate: rank(t => calc3PARate(t.threeAtt, t.fga), true),
-      // Playmaking
       astRatio: rank(t => { const p = estimatePossessions(t.fga, t.fta, t.to, t.orb); return calcAstRatio(t.ast, p); }, true),
       tovRate: rank(t => { const p = estimatePossessions(t.fga, t.fta, t.to, t.orb); return calcTeamTovRate(t.to, p); }, false),
       astToRatio: rank(t => t.to > 0 ? t.ast / t.to : t.ast, true),
-      // Rebounding
       orbPct: rank(t => calcORBPct(t.orb, t.oppDrb), true),
       drbPct: rank(t => calcDRBPct(t.drb, t.oppOrb), true),
-      // Defense
       stlRate: rank(t => { const p = estimatePossessions(t.oppFga, t.oppFta, t.oppTo, t.oppOrb); return calcStlRate(t.stl, p); }, true),
       blkRate: rank(t => calcBlkRate(t.blk, t.oppFga), true),
     };
@@ -115,56 +109,36 @@ export default function TeamAdvancedStatsTab() {
 
   return (
     <div className="animate-fade-in-up">
-      {/* Ratings */}
       <SectionHeader icon={<Zap size={20} />} title="Ratings" color="var(--color-success)" />
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: 'var(--space-4)', marginBottom: 'var(--space-6)',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         {RATING_STATS.map(stat => (
           <TeamStatCard key={stat.key} stat={stat} items={ranked[stat.key as keyof typeof ranked] || []} teams={teams} />
         ))}
       </div>
 
-      {/* Shooting Efficiency */}
       <SectionHeader icon={<Crosshair size={20} />} title="Eficiencia de Tiro" color="var(--color-primary)" />
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: 'var(--space-4)', marginBottom: 'var(--space-6)',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         {SHOOTING_STATS.map(stat => (
           <TeamStatCard key={stat.key} stat={stat} items={ranked[stat.key as keyof typeof ranked] || []} teams={teams} />
         ))}
       </div>
 
-      {/* Playmaking & Ball Control */}
       <SectionHeader icon={<Brain size={20} />} title="Creación de Juego y Control" color="#C08B1A" />
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: 'var(--space-4)', marginBottom: 'var(--space-6)',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         {PLAYMAKING_STATS.map(stat => (
           <TeamStatCard key={stat.key} stat={stat} items={ranked[stat.key as keyof typeof ranked] || []} teams={teams} />
         ))}
       </div>
 
-      {/* Rebounding */}
       <SectionHeader icon={<Hand size={20} />} title="Rebote" color="var(--color-accent)" />
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: 'var(--space-4)', marginBottom: 'var(--space-6)',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         {REBOUND_STATS.map(stat => (
           <TeamStatCard key={stat.key} stat={stat} items={ranked[stat.key as keyof typeof ranked] || []} teams={teams} />
         ))}
       </div>
 
-      {/* Defense */}
       <SectionHeader icon={<Shield size={20} />} title="Defensa" color="var(--color-danger)" />
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: 'var(--space-4)', marginBottom: 'var(--space-6)',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         {DEFENSE_STATS.map(stat => (
           <TeamStatCard key={stat.key} stat={stat} items={ranked[stat.key as keyof typeof ranked] || []} teams={teams} />
         ))}
@@ -206,12 +180,51 @@ function TeamStatCard({ stat, items, teams }: {
   items: { teamId: string; value: number }[];
   teams: Team[];
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [capturing, setCapturing] = useState(false);
   const maxVal = Math.max(...items.map(x => Math.abs(x.value)), 1);
   const decimals = stat.decimals ?? 1;
   const showSign = stat.key === 'netrtg';
 
+  const handleCapture = useCallback(async () => {
+    if (!cardRef.current || capturing) return;
+    setCapturing(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        cacheBust: true,
+      });
+
+      const filename = `parish-league-${stat.shortLabel.replace(/[^a-zA-Z0-9]/g, '')}`;
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (isMobile && navigator.share && navigator.canShare) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], `${filename}.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: `${stat.label} — Parish League`, files: [file] });
+          setCapturing(false);
+          return;
+        }
+      }
+
+      const link = document.createElement('a');
+      link.download = `${filename}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Capture failed:', err);
+    }
+    setCapturing(false);
+  }, [capturing, stat.shortLabel, stat.label]);
+
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const ShareIcon = capturing ? Loader2 : (isMobile ? Share2 : Download);
+
   return (
-    <div className="card" style={{
+    <div ref={cardRef} className="card" style={{
       padding: 'var(--space-5)',
       transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
     }}
@@ -233,6 +246,21 @@ function TeamStatCard({ stat, items, teams }: {
           }}>
             {stat.shortLabel}
           </span>
+          <button
+            onClick={handleCapture}
+            disabled={capturing}
+            title={isMobile ? 'Compartir' : 'Descargar imagen'}
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 28, height: 28, borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border-light)', background: 'var(--color-bg-secondary)',
+              color: capturing ? 'var(--color-text-tertiary)' : 'var(--color-primary)',
+              cursor: capturing ? 'wait' : 'pointer', transition: 'all var(--transition-fast)',
+              flexShrink: 0,
+            }}
+          >
+            <ShareIcon size={14} style={capturing ? { animation: 'spin 1s linear infinite' } : undefined} />
+          </button>
         </h3>
         <p style={{
           fontSize: '11px', color: 'var(--color-text-tertiary)',
