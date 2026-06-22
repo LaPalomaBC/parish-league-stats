@@ -140,6 +140,7 @@ export default function StatsChat() {
     <>
       {/* Floating Button */}
       <button
+        className="stats-chat-fab"
         onClick={() => setIsOpen(!isOpen)}
         style={{
           position: 'fixed', bottom: 20, right: 20, zIndex: 1000,
@@ -163,7 +164,7 @@ export default function StatsChat() {
 
       {/* Chat Panel */}
       {isOpen && (
-        <div style={{
+        <div className="stats-chat-panel" style={{
           position: 'fixed', bottom: 84, right: 16, zIndex: 999,
           width: 420, maxWidth: 'calc(100vw - 32px)',
           height: 560, maxHeight: 'calc(100vh - 110px)',
