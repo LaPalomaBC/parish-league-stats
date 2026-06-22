@@ -90,14 +90,14 @@ export function serializeLeagueContext(data: SerializeInput): string {
   });
 
   lines.push('## STATS JUGADORES (medias/partido)');
-  lines.push('Nombre,Eq,PJ,PTS,REB,AST,REC,TAP,PER,VAL,TC%,T3%,TL%');
+  lines.push('Nombre,Eq,PJ,PTS,REB,AST,REC,TAP,PER,VAL,TC%,T3%,TL%,TLm,TLa');
   Array.from(playerMap.entries())
     .sort((a, b) => (b[1].pts / b[1].games) - (a[1].pts / a[1].games))
     .forEach(([, p]) => {
       const t = teams.find(t => t.id === p.teamId)?.shortName;
       const g = p.games;
       lines.push(
-        `${p.name},${t},${g},${(p.pts/g).toFixed(1)},${(p.reb/g).toFixed(1)},${(p.ast/g).toFixed(1)},${(p.stl/g).toFixed(1)},${(p.blk/g).toFixed(1)},${(p.to/g).toFixed(1)},${(p.eff/g).toFixed(1)},${p.fga>0?((p.fgMade/p.fga)*100).toFixed(0):'0'},${p.tpAtt>0?((p.tpMade/p.tpAtt)*100).toFixed(0):'0'},${p.fta>0?((p.ftMade/p.fta)*100).toFixed(0):'0'}`
+        `${p.name},${t},${g},${(p.pts/g).toFixed(1)},${(p.reb/g).toFixed(1)},${(p.ast/g).toFixed(1)},${(p.stl/g).toFixed(1)},${(p.blk/g).toFixed(1)},${(p.to/g).toFixed(1)},${(p.eff/g).toFixed(1)},${p.fga>0?((p.fgMade/p.fga)*100).toFixed(0):'0'},${p.tpAtt>0?((p.tpMade/p.tpAtt)*100).toFixed(0):'0'},${p.fta>0?((p.ftMade/p.fta)*100).toFixed(0):'0'},${p.ftMade},${p.fta}`
       );
     });
 
