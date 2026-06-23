@@ -14,6 +14,7 @@ interface EditingPlayer {
   name: string;
   number: string;
   position: string[];
+  height: string;
   birthDate: string;
   photoUrl: string;
   isActive: boolean;
@@ -56,6 +57,7 @@ export default function JugadoresPage() {
   function handleStartEdit(player: Player) {
     setEditingPlayer({
       ...player,
+      height: player.height ? String(player.height) : '',
       birthDate: player.birthDate || '',
       photoUrl: player.photoUrl || '',
       position: Array.isArray(player.position) ? player.position : [player.position],
@@ -70,6 +72,7 @@ export default function JugadoresPage() {
       name: '',
       number: '',
       position: [],
+      height: '',
       birthDate: '',
       photoUrl: '',
       isActive: true,
@@ -89,6 +92,7 @@ export default function JugadoresPage() {
         name: editingPlayer.name.trim(),
         number: editingPlayer.number.trim(),
         position: editingPlayer.position,
+        height: editingPlayer.height ? parseInt(editingPlayer.height) : undefined,
         birthDate: editingPlayer.birthDate || undefined,
         photoUrl: editingPlayer.photoUrl || undefined,
         isActive: editingPlayer.isActive,
@@ -100,6 +104,7 @@ export default function JugadoresPage() {
         number: editingPlayer.number.trim(),
         teamId: editingPlayer.teamId,
         position: editingPlayer.position,
+        height: editingPlayer.height ? parseInt(editingPlayer.height) : undefined,
         birthDate: editingPlayer.birthDate || undefined,
         photoUrl: editingPlayer.photoUrl || undefined,
         isActive: editingPlayer.isActive,
@@ -331,6 +336,20 @@ export default function JugadoresPage() {
               </select>
             </div>
 
+            {/* Height */}
+            <div>
+              <label style={labelStyle}>Altura (cm)</label>
+              <input
+                type="number"
+                value={editingPlayer.height}
+                onChange={(e) => setEditingPlayer({ ...editingPlayer, height: e.target.value })}
+                placeholder="178"
+                min={100}
+                max={230}
+                style={{ ...inputStyle, fontFamily: 'var(--font-display)', fontWeight: 800 }}
+              />
+            </div>
+
             {/* Birth date */}
             <div>
               <label style={labelStyle}>Fecha de nacimiento</label>
@@ -492,6 +511,7 @@ export default function JugadoresPage() {
                     <th style={{ width: 50 }}>#</th>
                     <th>Nombre</th>
                     <th>Posición</th>
+                    <th>Altura</th>
                     <th>Nacimiento</th>
                     <th style={{ width: 100 }}></th>
                   </tr>
@@ -529,6 +549,9 @@ export default function JugadoresPage() {
                             </span>
                           ))}
                         </div>
+                      </td>
+                      <td style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
+                        {player.height ? `${(player.height / 100).toFixed(2).replace('.', ',')}m` : '—'}
                       </td>
                       <td style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
                         {player.birthDate || '—'}

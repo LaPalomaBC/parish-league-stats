@@ -342,6 +342,33 @@ export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
                 </span>
               </div>
 
+              {player.height && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: 'var(--space-2) 0',
+                  borderBottom: '1px solid var(--color-border-light)',
+                  maxWidth: 320,
+                }}>
+                  <span style={{
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: 'var(--color-text-tertiary)',
+                  }}>
+                    Altura
+                  </span>
+                  <span style={{
+                    fontWeight: 700,
+                    fontSize: 'var(--text-sm)',
+                  }}>
+                    {(player.height / 100).toFixed(2).replace('.', ',')}m
+                  </span>
+                </div>
+              )}
+
               {player.birthDate && (
                 <div style={{
                   display: 'flex',

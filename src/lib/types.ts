@@ -18,6 +18,7 @@ export interface Player {
   name: string;
   number: string;
   position: string[];  // Multiple positions: Base, Escolta, Alero, Ala-Pívot, Pívot
+  height?: number;     // Altura en cm (ej: 178 = 1,78m)
   birthDate?: string;
   photoUrl?: string;
   isActive: boolean;
