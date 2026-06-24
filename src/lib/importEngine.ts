@@ -157,7 +157,7 @@ export function createMatch(
   );
 
   if (existing) {
-    // Update existing match
+    // Update existing match — preserve the original matchDate set via calendar
     return {
       ...existing,
       homeTeamId,
@@ -167,7 +167,7 @@ export function createMatch(
       matchday,
       matchType,
       isPlayed: true,
-      matchDate: new Date().toISOString().split('T')[0],
+      matchDate: existing.matchDate || new Date().toISOString().split('T')[0],
     };
   }
 

@@ -38,6 +38,20 @@ export default function MatchCard({ match, showMatchday }: MatchCardProps) {
         </div>
       )}
 
+      {match.matchDate && (
+        <div style={{
+          position: 'absolute',
+          top: 6,
+          right: 8,
+          fontSize: '10px',
+          fontWeight: 500,
+          color: 'var(--color-text-tertiary)',
+          fontFamily: 'var(--font-body)',
+        }}>
+          {formatDate(match.matchDate)}
+        </div>
+      )}
+
       <div className="match-team">
         <TeamLogo team={homeTeam} size="sm" />
         <div>

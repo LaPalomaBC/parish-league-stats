@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
+import { formatDate } from '@/lib/data';
 import MatchCard from '@/components/MatchCard';
 
 export default function CalendarioPage() {
@@ -11,6 +12,17 @@ export default function CalendarioPage() {
   const maxMatchday = useMemo(() => {
     if (matches.length === 0) return 0;
     return Math.max(...matches.map(m => m.matchday));
+  }, [matches]);
+
+  // Compute date for each matchday (use earliest match date in that matchday)
+  const matchdayDates = useMemo(() => {
+    const dateMap: Record<number, string> = {};
+    for (const m of matches) {
+      if (m.matchDate && !dateMap[m.matchday]) {
+        dateMap[m.matchday] = m.matchDate;
+      }
+    }
+    return dateMap;
   }, [matches]);
 
   const [selectedMatchday, setSelectedMatchday] = useState<number | null>(null);
@@ -50,16 +62,23 @@ export default function CalendarioPage() {
         </h1>
 
         {/* Matchday Tabs */}
-        <div className="tabs" style={{ marginBottom: 'var(--space-8)' }} id="matchday-tabs">
-          {Array.from({ length: maxMatchday }, (_, i) => i + 1).map(md => (
-            <button
-              key={md}
-              className={`tab ${activeMatchday === md ? 'active' : ''}`}
-              onClick={() => setSelectedMatchday(md)}
-            >
-              Jornada {md}
-            </button>
-          ))}
+        <div className="tabs calendario-tabs" style={{ marginBottom: 'var(--space-8)' }} id="matchday-tabs">
+          {Array.from({ length: maxMatchday }, (_, i) => i + 1).map(md => {
+            const dateStr = matchdayDates[md];
+            const shortDate = dateStr
+              ? new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+              : null;
+            return (
+              <button
+                key={md}
+                className={`tab tab-with-date ${activeMatchday === md ? 'active' : ''}`}
+                onClick={() => setSelectedMatchday(md)}
+              >
+                <span className="tab-label">J{md}</span>
+                {shortDate && <span className="tab-date">{shortDate}</span>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Match Type Badge */}
@@ -78,6 +97,16 @@ export default function CalendarioPage() {
               </span>
             )}
           </h2>
+          {matchdayDates[activeMatchday] && (
+            <p style={{
+              fontSize: 'var(--text-sm)',
+              color: 'var(--color-text-tertiary)',
+              marginTop: 'var(--space-1)',
+              fontWeight: 500,
+            }}>
+              📅 {formatDate(matchdayDates[activeMatchday])}
+            </p>
+          )}
         </div>
 
         {/* Matches */}

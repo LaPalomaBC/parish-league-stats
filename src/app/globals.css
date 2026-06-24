@@ -788,6 +788,40 @@ a:hover {
   font-weight: 600;
 }
 
+/* Calendario Tabs — stacked with dates */
+.calendario-tabs {
+  gap: 4px;
+}
+
+.tab-with-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: var(--space-2) var(--space-3);
+  min-width: 52px;
+}
+
+.tab-label {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.tab-date {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  line-height: 1.1;
+  text-transform: capitalize;
+}
+
+.tab.active .tab-date {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
 /* ============================================
    Progress Bar
    ============================================ */
