@@ -48,7 +48,7 @@ A continuación tienes TODOS los datos actualizados de la liga:`;
 
 // Simple in-memory cache (5 min TTL) to avoid duplicate API calls
 const responseCache = new Map<string, { text: string; ts: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes — league data barely changes
 
 function getCached(key: string): string | null {
   const entry = responseCache.get(key);
@@ -57,7 +57,42 @@ function getCached(key: string): string | null {
   return null;
 }
 
-// Models to try in order — gemini-2.5-flash has better quota, then fallbacks
+// ── Multi-key rotation ──
+// Each key should come from a DIFFERENT Gmail/Google Cloud project
+// so each has its own independent free-tier quota (~1,500 RPD each).
+function getApiKeys(): string[] {
+  const keys: string[] = [];
+  if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY);
+  if (process.env.GEMINI_API_KEY_2) keys.push(process.env.GEMINI_API_KEY_2);
+  if (process.env.GEMINI_API_KEY_3) keys.push(process.env.GEMINI_API_KEY_3);
+  return [...new Set(keys)]; // deduplicate
+}
+
+// Track exhausted keys: masked-key -> cooldown expiry timestamp
+const keyCooldowns = new Map<string, number>();
+const KEY_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour cooldown per exhausted key
+
+function getAvailableKeys(): string[] {
+  const allKeys = getApiKeys();
+  const now = Date.now();
+  const available = allKeys.filter(k => {
+    const until = keyCooldowns.get(k);
+    if (until && now < until) return false;
+    if (until) keyCooldowns.delete(k);
+    return true;
+  });
+  // If ALL keys exhausted, try the one closest to expiring anyway
+  if (available.length === 0 && allKeys.length > 0) {
+    const sorted = [...allKeys].sort(
+      (a, b) => (keyCooldowns.get(a) || 0) - (keyCooldowns.get(b) || 0)
+    );
+    keyCooldowns.delete(sorted[0]);
+    return [sorted[0]];
+  }
+  return available;
+}
+
+// Models to try per key — ordered by quality
 const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
 
 async function callGemini(
@@ -110,10 +145,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const apiKeys = getAvailableKeys();
+    if (apiKeys.length === 0) {
       return NextResponse.json(
-        { error: 'API key de Gemini no configurada. Añade GEMINI_API_KEY en .env.local' },
+        { error: 'No hay API keys de Gemini configuradas. Añade GEMINI_API_KEY en .env.local' },
         { status: 500 }
       );
     }
@@ -147,35 +182,49 @@ export async function POST(request: NextRequest) {
       parts: [{ text: question }],
     });
 
-    // Try each model in order (multi-model fallback), with one retry on 429
+    // Try each API key (different Google projects = independent quotas)
+    // Within each key, try models in quality order
     let lastError = '';
-    for (const model of GEMINI_MODELS) {
-      for (let attempt = 0; attempt < 2; attempt++) {
+    for (const key of apiKeys) {
+      let keyExhausted = false;
+      for (const model of GEMINI_MODELS) {
         try {
-          const text = await callGemini(apiKey, model, systemText, contents);
+          const text = await callGemini(key, model, systemText, contents);
           // Store in cache
           if (!history || history.length === 0) {
             responseCache.set(cacheKey, { text, ts: Date.now() });
           }
+          console.log(`✅ AIndrés response via ${model} (key ...${key.slice(-4)})`);
           return NextResponse.json({ response: text });
         } catch (err) {
           lastError = err instanceof Error ? err.message : String(err);
-          const is429 = lastError.startsWith('429');
-          if (is429 && attempt === 0) {
-            // Wait and retry once for this model
-            await new Promise(r => setTimeout(r, 5000));
-            continue;
+          const isQuotaErr =
+            lastError.startsWith('429') ||
+            lastError.includes('RESOURCE_EXHAUSTED') ||
+            lastError.includes('quota');
+          if (isQuotaErr) {
+            // Key exhausted → 1h cooldown, skip to next key
+            keyCooldowns.set(key, Date.now() + KEY_COOLDOWN_MS);
+            console.warn(
+              `🔑 Key ...${key.slice(-4)} exhausted on ${model}. ` +
+              `Cooldown 1h. ${apiKeys.length - apiKeys.indexOf(key) - 1} keys remaining.`
+            );
+            keyExhausted = true;
+            break; // break model loop → try next key
           }
-          console.warn(`Model ${model} attempt ${attempt} failed, trying next...`);
-          break; // try next model
+          // Non-quota error → try next model with same key
+          console.warn(`⚠️ ${model} (key ...${key.slice(-4)}): ${lastError.slice(0, 120)}`);
         }
       }
+      if (keyExhausted) continue; // try next key
     }
 
-    // All models failed — show friendly error
+    // All keys + models failed
     const isQuota = lastError.includes('429') || lastError.includes('quota') || lastError.includes('RESOURCE_EXHAUSTED');
+    const totalKeys = getApiKeys().length;
+    const exhaustedKeys = keyCooldowns.size;
     const friendlyMsg = isQuota
-      ? '¡Amigo mío, hemos agotado las llamadas al micrófono por ahora! 🎙️ Espera un minutito e inténtalo de nuevo. La vida puede ser maravillosa... pero a veces hay que tener paciencia. 🏀'
+      ? `¡Amigo mío, hemos agotado las ${totalKeys} línea${totalKeys > 1 ? 's' : ''} del micrófono por hoy! 🎙️ ${exhaustedKeys === totalKeys ? 'Todas las cuentas están en descanso.' : ''} Vuelve a intentarlo en una hora. ¡La vida puede ser maravillosa... pero a veces hay que tener paciencia! 🏀`
       : 'Uy, algo ha fallado en la narración. Inténtalo de nuevo en unos segundos.';
     return NextResponse.json(
       { error: friendlyMsg },
