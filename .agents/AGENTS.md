@@ -277,6 +277,10 @@ El módulo `advancedStats.ts` implementa sabermetrics de baloncesto:
 - Carga los 45 partidos sin jugar (`isPlayed: false`, scores `null`, fechas vacías pendientes de fijación FBM) e inicializa la tabla de `standings` en 0 PJ.
 - Sigue la directiva `directives/calendar-import.md`.
 
+### `repair-m02.js`
+- **Propósito**: Reparación determinista de las estadísticas de jugadores para m-02 (TRI vs BET) tras corregir la lógica de matching de actas.
+- **Ejecución**: `node executions/repair-m02.js`
+
 ---
 
 ## 11. Design System (CSS)
@@ -423,3 +427,4 @@ Estos archivos ya NO son la fuente primaria (Supabase lo es), pero `initData.ts`
 |-------|--------|
 | 2026-09-17 | **Multi-temporada**: Sistema de archivo histórico implementado. Selector de temporada en Navbar, protección admin en modo archivo, API con soporte `?season=`, script de archivado. |
 | 2026-09-17 | **Calendario 2026/27**: Creados los 45 partidos de las 9 jornadas de la Liga Regular FBM en Supabase (todos pendientes de jugar, listos para recibir actas). Inicializada la clasificación. Mejorada la selección de jornada activa en `/calendario` para priorizar la jornada pendiente más próxima en lugar de saltar a J9. Directiva en `directives/calendar-import.md`. |
+| 2026-09-17 | **Fix Matching Jugadores en Actas**: Corregido bug en `importEngine.ts` que priorizaba el dorsal sobre el nombre al importar actas, lo que causaba falsos positivos cuando jugadores cambiaban de dorsal entre temporadas (ej. Gabriel Rosas duplicado, Pedro Sandín y Juan Ruiz Cano no creados). Ahora prioriza coincidencia exacta y difusa por nombre y solo usa el dorsal si hay compatibilidad de nombre. Reparados los datos de `m-02` en Supabase con `repair-m02.js`. |

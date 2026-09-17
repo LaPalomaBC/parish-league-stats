@@ -63,30 +63,89 @@ export interface PlayerMatchResult {
 }
 
 /**
- * Busca jugador por dorsal + equipo. Si no existe, crea uno nuevo.
+ * Normaliza una cadena para comparaciones de nombres:
+ * minúsculas, sin acentos/diacríticos, sin caracteres especiales.
+ */
+function normalizeName(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Extrae palabras significativas de un nombre (omitiendo partículas comunes).
+ */
+const STOP_WORDS = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'y', 'san', 'van', 'von']);
+function getNameTokens(str: string): string[] {
+  return normalizeName(str)
+    .split(' ')
+    .filter(w => w.length >= 2 && !STOP_WORDS.has(w));
+}
+
+/**
+ * Busca jugador por nombre (prioridad máxima) o por dorsal (solo si el nombre es compatible).
+ * Si no existe, crea uno nuevo.
  */
 export function matchOrCreatePlayer(
   line: ParsedPlayerLine,
   teamId: string,
   existingPlayers: Player[],
 ): PlayerMatchResult {
-  // Try exact match by number + team
-  const byNumber = existingPlayers.find(p => p.teamId === teamId && p.number === line.number);
-  if (byNumber) {
-    return { player: byNumber, isNew: false };
+  const teamPlayers = existingPlayers.filter(p => p.teamId === teamId);
+  const lineNorm = normalizeName(line.name);
+  const lineTokens = getNameTokens(line.name);
+
+  // 1. Coincidencia exacta por nombre normalizado dentro del equipo
+  const exactByName = teamPlayers.find(p => normalizeName(p.name) === lineNorm);
+  if (exactByName) {
+    if (exactByName.number !== line.number) {
+      exactByName.number = line.number;
+    }
+    return { player: exactByName, isNew: false };
   }
 
-  // Try by name + team (in case number changed)
-  const byName = existingPlayers.find(p => {
-    if (p.teamId !== teamId) return false;
-    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
-    return normalize(p.name) === normalize(line.name);
+  // 2. Coincidencia difusa por nombre (ej: "Juan Ruiz" vs "Juan Ruiz Cano", o "Pedro Navarro" vs "Pedro Navarro Lima")
+  // Requiere que coincida el primer nombre Y al menos un apellido
+  const fuzzyByName = teamPlayers.find(p => {
+    const pTokens = getNameTokens(p.name);
+    if (pTokens.length === 0 || lineTokens.length === 0) return false;
+
+    // Primer nombre debe coincidir
+    if (pTokens[0] !== lineTokens[0]) return false;
+
+    // Y al menos otro apellido en común
+    const pSurnames = pTokens.slice(1);
+    const lineSurnames = lineTokens.slice(1);
+    return pSurnames.some(s => lineSurnames.includes(s));
   });
-  if (byName) {
-    return { player: byName, isNew: false };
+
+  if (fuzzyByName) {
+    // Si el nombre del acta es más completo, adoptarlo
+    if (line.name.length > fuzzyByName.name.length) {
+      fuzzyByName.name = line.name;
+    }
+    if (fuzzyByName.number !== line.number) {
+      fuzzyByName.number = line.number;
+    }
+    return { player: fuzzyByName, isNew: false };
   }
 
-  // Create new player
+  // 3. Coincidencia por dorsal SOLO si el nombre tiene alguna similitud
+  // (evita asignar un dorsal a un jugador completamente distinto que dejó el equipo o cambió de dorsal)
+  const byNumber = teamPlayers.find(p => p.number === line.number);
+  if (byNumber) {
+    const pTokens = getNameTokens(byNumber.name);
+    const shareAnyToken = pTokens.some(t => lineTokens.includes(t));
+    if (shareAnyToken) {
+      return { player: byNumber, isNew: false };
+    }
+  }
+
+  // 4. No coincide nadie -> Crear nuevo jugador
   const newPlayer: Player = {
     id: `p-auto-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     teamId,
