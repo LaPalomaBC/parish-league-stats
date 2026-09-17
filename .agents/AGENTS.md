@@ -271,6 +271,12 @@ El módulo `advancedStats.ts` implementa sabermetrics de baloncesto:
 - Conserva: teams (intactos) + players de La Paloma BC (`team-01`)
 - Elimina: jugadores de todos los demás equipos
 
+### `create-calendar-2026-27.js`
+- **Propósito**: Creación del calendario oficial de competición FBM 2026/27 (45 partidos, 9 jornadas)
+- **Ejecución**: `node executions/create-calendar-2026-27.js`
+- Carga los 45 partidos sin jugar (`isPlayed: false`, scores `null`, fechas vacías pendientes de fijación FBM) e inicializa la tabla de `standings` en 0 PJ.
+- Sigue la directiva `directives/calendar-import.md`.
+
 ---
 
 ## 11. Design System (CSS)
@@ -416,3 +422,4 @@ Estos archivos ya NO son la fuente primaria (Supabase lo es), pero `initData.ts`
 | Fecha | Cambio |
 |-------|--------|
 | 2026-09-17 | **Multi-temporada**: Sistema de archivo histórico implementado. Selector de temporada en Navbar, protección admin en modo archivo, API con soporte `?season=`, script de archivado. |
+| 2026-09-17 | **Calendario 2026/27**: Creados los 45 partidos de las 9 jornadas de la Liga Regular FBM en Supabase (todos pendientes de jugar, listos para recibir actas). Inicializada la clasificación. Mejorada la selección de jornada activa en `/calendario` para priorizar la jornada pendiente más próxima en lugar de saltar a J9. Directiva en `directives/calendar-import.md`. |

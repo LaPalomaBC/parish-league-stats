@@ -149,8 +149,13 @@ export function createMatch(
   matchType: 'regular' | 'copa' | 'playoff',
   existingMatches: Match[],
 ): Match {
-  // Check if there's an existing unplayed match between these teams
+  // Check if there's an existing unplayed match between these teams (prefer same matchday)
   const existing = existingMatches.find(m =>
+    !m.isPlayed &&
+    m.matchday === matchday &&
+    ((m.homeTeamId === homeTeamId && m.awayTeamId === awayTeamId) ||
+     (m.homeTeamId === awayTeamId && m.awayTeamId === homeTeamId))
+  ) || existingMatches.find(m =>
     !m.isPlayed &&
     ((m.homeTeamId === homeTeamId && m.awayTeamId === awayTeamId) ||
      (m.homeTeamId === awayTeamId && m.awayTeamId === homeTeamId))

@@ -27,8 +27,20 @@ export default function CalendarioPage() {
 
   const [selectedMatchday, setSelectedMatchday] = useState<number | null>(null);
 
-  // Auto-select the latest matchday with data on first render
-  const activeMatchday = selectedMatchday ?? maxMatchday;
+  // Auto-select the latest played matchday, or the first upcoming matchday on first render
+  const defaultMatchday = useMemo(() => {
+    const played = matches.filter(m => m.isPlayed);
+    if (played.length > 0) {
+      return Math.max(...played.map(m => m.matchday));
+    }
+    const unplayed = matches.filter(m => !m.isPlayed);
+    if (unplayed.length > 0) {
+      return Math.min(...unplayed.map(m => m.matchday));
+    }
+    return maxMatchday || 1;
+  }, [matches, maxMatchday]);
+
+  const activeMatchday = selectedMatchday ?? defaultMatchday;
 
   const matchdayMatches = useMemo(() => {
     return matches
