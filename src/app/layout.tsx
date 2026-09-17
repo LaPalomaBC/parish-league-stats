@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { LeagueDataProvider } from "@/lib/DataContext";
 import StatsChat from "@/components/StatsChat";
+import SeasonFooter from "@/components/SeasonFooter";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,11 +57,7 @@ export default function RootLayout({
         <LeagueDataProvider>
           <Navbar />
           <main>{children}</main>
-          <footer className="site-footer">
-            <span>Created by <strong>Josugeos</strong></span>
-            <span className="footer-dot">·</span>
-            <span>Parish League 2025/26</span>
-          </footer>
+          <SeasonFooter />
           <StatsChat />
         </LeagueDataProvider>
       </body>

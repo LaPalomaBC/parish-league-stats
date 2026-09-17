@@ -10,7 +10,12 @@ import {
   Calendar,
   BarChart3,
   Settings,
+  ChevronDown,
+  Archive,
+  Radio,
 } from 'lucide-react';
+import { useLeagueData } from '@/lib/DataContext';
+import { useState, useRef, useEffect } from 'react';
 
 const navLinks = [
   { href: '/', label: 'Inicio', icon: LayoutDashboard },
@@ -22,21 +27,99 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { seasons, currentSeason, isArchive, setCurrentSeasonId } = useLeagueData();
+  const [showSeasonPicker, setShowSeasonPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
   };
 
+  // Close picker on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowSeasonPicker(false);
+      }
+    }
+    if (showSeasonPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSeasonPicker]);
+
+  const hasMultipleSeasons = seasons.length > 1;
+
   return (
     <>
+      {/* Archive Banner */}
+      {isArchive && currentSeason && (
+        <div className="archive-banner" id="archive-banner">
+          <Archive size={14} />
+          <span>Viendo archivo: <strong>{currentSeason.label}</strong></span>
+          <button
+            className="archive-banner-btn"
+            onClick={() => {
+              const active = seasons.find(s => s.isActive);
+              if (active) setCurrentSeasonId(active.id);
+            }}
+          >
+            Ir a temporada actual →
+          </button>
+        </div>
+      )}
+
       {/* Desktop top navbar */}
-      <nav className="navbar" id="main-navbar">
+      <nav className="navbar" id="main-navbar" style={isArchive ? { top: 36 } : undefined}>
         <div className="navbar-inner">
-          <Link href="/" className="navbar-brand">
-            <Image src="/logo-pl.png" alt="Parish League" width={44} height={44} style={{ borderRadius: 'var(--radius-md)' }} priority />
-            <span>Parish League</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <Link href="/" className="navbar-brand">
+              <Image src="/logo-pl.png" alt="Parish League" width={44} height={44} style={{ borderRadius: 'var(--radius-md)' }} priority />
+              <span>Parish League</span>
+            </Link>
+
+            {/* Season Selector */}
+            {hasMultipleSeasons && currentSeason && (
+              <div className="season-selector" ref={pickerRef}>
+                <button
+                  className="season-selector-btn"
+                  onClick={() => setShowSeasonPicker(!showSeasonPicker)}
+                  aria-label="Cambiar temporada"
+                >
+                  {currentSeason.isActive ? (
+                    <span className="season-badge-live"><Radio size={10} /> LIVE</span>
+                  ) : (
+                    <span className="season-badge-archive"><Archive size={10} /></span>
+                  )}
+                  <span className="season-selector-label">{currentSeason.id.replace('-', '/')}</span>
+                  <ChevronDown size={14} className={`season-chevron ${showSeasonPicker ? 'open' : ''}`} />
+                </button>
+
+                {showSeasonPicker && (
+                  <div className="season-dropdown">
+                    {seasons.map(s => (
+                      <button
+                        key={s.id}
+                        className={`season-dropdown-item ${s.id === currentSeason.id ? 'selected' : ''}`}
+                        onClick={() => {
+                          setCurrentSeasonId(s.id);
+                          setShowSeasonPicker(false);
+                        }}
+                      >
+                        <span className="season-dropdown-label">
+                          {s.isActive ? <Radio size={12} className="season-live-icon" /> : <Archive size={12} />}
+                          {s.label}
+                        </span>
+                        {s.isActive && <span className="season-badge-live-sm">LIVE</span>}
+                        {s.archivedAt && <span className="season-archived-date">{s.archivedAt}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <ul className="navbar-links">
             {navLinks.map(({ href, label, icon: Icon }) => (

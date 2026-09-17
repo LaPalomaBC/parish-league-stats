@@ -21,6 +21,7 @@ import StandingsTable from '@/components/StandingsTable';
 import MatchCard from '@/components/MatchCard';
 import TopScorersChart from '@/components/TopScorersChart';
 import StandingsChart from '@/components/StandingsChart';
+import { SeasonHeroSubtitle, SeasonPageFooter } from '@/components/SeasonLabels';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,9 +61,7 @@ export default async function HomePage() {
       {/* Hero */}
       <div className="hero animate-fade-in-up" id="hero-section">
         <h1 className="hero-title">Parish League</h1>
-        <p className="hero-subtitle">
-          Liga Parroquial de Baloncesto de Madrid — Temporada 2025/26
-        </p>
+        <SeasonHeroSubtitle />
       </div>
 
       {/* Quick Stats */}
@@ -236,19 +235,7 @@ export default async function HomePage() {
       )}
 
       {/* Footer */}
-      <footer
-        style={{
-          textAlign: 'center',
-          padding: 'var(--space-12) 0 var(--space-8)',
-          color: 'var(--color-text-tertiary)',
-          fontSize: 'var(--text-sm)',
-        }}
-      >
-        <p style={{ fontWeight: 500 }}>🏀 Parish League Stats</p>
-        <p style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)' }}>
-          Temporada 2025/26 — Liga Parroquial de Baloncesto de Madrid
-        </p>
-      </footer>
+      <SeasonPageFooter />
     </div>
   );
 }

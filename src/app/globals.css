@@ -1100,6 +1100,251 @@ a:hover {
 }
 
 /* ============================================
+   Season Selector — Navbar dropdown
+   ============================================ */
+.season-selector {
+  position: relative;
+  margin-left: var(--space-1);
+}
+
+.season-selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.season-selector-btn:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.season-selector-label {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.season-chevron {
+  transition: transform var(--transition-fast);
+  opacity: 0.5;
+}
+
+.season-chevron.open {
+  transform: rotate(180deg);
+}
+
+.season-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--color-success);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.season-badge-archive {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  color: var(--color-text-tertiary);
+}
+
+.season-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  padding: var(--space-1);
+  animation: fadeInUp 0.15s ease;
+}
+
+.season-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+
+.season-dropdown-item:hover {
+  background: var(--color-bg-secondary);
+}
+
+.season-dropdown-item.selected {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.season-dropdown-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.season-live-icon {
+  color: var(--color-success);
+}
+
+.season-badge-live-sm {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--color-success);
+  background: rgba(52, 199, 89, 0.1);
+  padding: 2px 5px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+}
+
+.season-archived-date {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+
+/* ============================================
+   Archive Banner — Top info bar
+   ============================================ */
+.archive-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: linear-gradient(135deg, #2C2C2E, #3A3A3C);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 101;
+  font-family: var(--font-body);
+}
+
+.archive-banner strong {
+  font-weight: 700;
+  color: #fff;
+}
+
+.archive-banner-btn {
+  margin-left: var(--space-2);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.archive-banner-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Adjust page-container when archive banner is shown */
+body:has(.archive-banner) .page-container {
+  padding-top: calc(var(--nav-height) + var(--space-8) + 36px);
+}
+
+body:has(.archive-banner) .navbar {
+  top: 36px;
+}
+
+/* Archive admin overlay */
+.archive-overlay {
+  position: relative;
+}
+
+.archive-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: inherit;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.archive-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: rgba(142, 142, 147, 0.08);
+  border: 1px solid rgba(142, 142, 147, 0.15);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-6);
+}
+
+/* Mobile responsive for season selector */
+@media (max-width: 768px) {
+  .season-selector-label {
+    display: none;
+  }
+
+  .season-selector-btn {
+    padding: 4px 8px;
+  }
+
+  .archive-banner {
+    font-size: 11px;
+    gap: var(--space-1);
+    padding: 0 var(--space-3);
+  }
+
+  .archive-banner-btn {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .season-dropdown {
+    left: -20px;
+  }
+}
+
+/* ============================================
    Utility Classes
    ============================================ */
 .text-center { text-align: center; }

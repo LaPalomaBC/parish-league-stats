@@ -6,7 +6,7 @@
  * For Client Components, use DataContext instead.
  */
 import { supabase } from './supabase';
-import type { Team, Player, Match, PlayerStats, StandingRow } from './types';
+import type { Team, Player, Match, PlayerStats, StandingRow, Season } from './types';
 
 async function readFromSupabase<T>(key: string, fallback: T): Promise<T> {
   try {
@@ -22,6 +22,44 @@ async function readFromSupabase<T>(key: string, fallback: T): Promise<T> {
     return fallback;
   }
 }
+
+/**
+ * Read a key with optional season prefix.
+ * If seasonId is provided and is not the active season, reads "seasonId:key".
+ * Otherwise reads the plain key (active season).
+ */
+async function readForSeason<T>(key: string, seasonId: string | undefined, fallback: T): Promise<T> {
+  if (!seasonId) return readFromSupabase<T>(key, fallback);
+
+  // Check if this season is the active one
+  const seasons = await getSeasons();
+  const season = seasons.find(s => s.id === seasonId);
+
+  if (!season || season.isActive) {
+    // Active season or unknown → read plain key
+    return readFromSupabase<T>(key, fallback);
+  }
+
+  // Archived season → read prefixed key
+  return readFromSupabase<T>(`${seasonId}:${key}`, fallback);
+}
+
+// ============================================
+// SEASONS
+// ============================================
+
+export async function getSeasons(): Promise<Season[]> {
+  return readFromSupabase<Season[]>('seasons', []);
+}
+
+export async function getActiveSeason(): Promise<Season | null> {
+  const seasons = await getSeasons();
+  return seasons.find(s => s.isActive) || null;
+}
+
+// ============================================
+// ACTIVE SEASON DATA (default — backward compatible)
+// ============================================
 
 export async function getTeamsFromDisk(): Promise<Team[]> {
   return readFromSupabase<Team[]>('teams', []);
@@ -41,6 +79,30 @@ export async function getPlayerStatsFromDisk(): Promise<PlayerStats[]> {
 
 export async function getStandingsFromDisk(): Promise<StandingRow[]> {
   return readFromSupabase<StandingRow[]>('standings', []);
+}
+
+// ============================================
+// SEASON-AWARE DATA (for archive views)
+// ============================================
+
+export async function getTeamsForSeason(seasonId?: string): Promise<Team[]> {
+  return readForSeason<Team[]>('teams', seasonId, []);
+}
+
+export async function getPlayersForSeason(seasonId?: string): Promise<Player[]> {
+  return readForSeason<Player[]>('players', seasonId, []);
+}
+
+export async function getMatchesForSeason(seasonId?: string): Promise<Match[]> {
+  return readForSeason<Match[]>('matches', seasonId, []);
+}
+
+export async function getPlayerStatsForSeason(seasonId?: string): Promise<PlayerStats[]> {
+  return readForSeason<PlayerStats[]>('playerStats', seasonId, []);
+}
+
+export async function getStandingsForSeason(seasonId?: string): Promise<StandingRow[]> {
+  return readForSeason<StandingRow[]>('standings', seasonId, []);
 }
 
 // ============================================

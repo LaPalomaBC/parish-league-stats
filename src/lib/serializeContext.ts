@@ -26,13 +26,15 @@ interface SerializeInput {
   matches: Match[];
   playerStats: PlayerStats[];
   standings: StandingRow[];
+  seasonLabel?: string;
 }
 
 export function serializeLeagueContext(data: SerializeInput): string {
-  const { teams, players, matches, playerStats, standings } = data;
+  const { teams, players, matches, playerStats, standings, seasonLabel } = data;
   const lines: string[] = [];
 
-  lines.push('=== PARISH LEAGUE 2025/26 — DATOS COMPLETOS ===');
+  const header = seasonLabel || 'PARISH LEAGUE';
+  lines.push(`=== ${header.toUpperCase()} — DATOS COMPLETOS ===`);
 
   // ── CLASIFICACIÓN ──
   lines.push('## CLASIFICACIÓN');

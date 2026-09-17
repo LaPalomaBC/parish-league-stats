@@ -2,11 +2,13 @@
  * API Route: /api/data
  *
  * GET  → Returns all league data from Supabase
+ *        Accepts optional ?season=2025-26 to read archived data
  * PUT  → Receives partial updates { key: data } and writes to Supabase
+ *        Always writes to the ACTIVE season (no prefix)
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import type { Player, Team, Match, PlayerStats, StandingRow } from '@/lib/types';
+import type { Player, Team, Match, PlayerStats, StandingRow, Season } from '@/lib/types';
 import type { ImportedActaRecord } from '@/lib/importEngine';
 
 const VALID_KEYS = ['teams', 'players', 'matches', 'playerStats', 'standings', 'importHistory'];
@@ -22,13 +24,38 @@ interface AllData {
 
 /**
  * GET /api/data — Read all data from Supabase
+ * Optional: ?season=2025-26 for archived season data
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const seasonId = request.nextUrl.searchParams.get('season') || undefined;
+
+    // Determine the key prefix
+    let keyPrefix = '';
+    if (seasonId) {
+      // Check if this season is archived (not active)
+      const { data: seasonsRow } = await supabase
+        .from('data_store')
+        .select('value')
+        .eq('key', 'seasons')
+        .single();
+
+      const seasons: Season[] = Array.isArray(seasonsRow?.value) ? seasonsRow.value : [];
+      const season = seasons.find(s => s.id === seasonId);
+
+      // If the season exists and is NOT active, use prefix
+      if (season && !season.isActive) {
+        keyPrefix = `${seasonId}:`;
+      }
+    }
+
+    // Build the list of keys to fetch
+    const keysToFetch = VALID_KEYS.map(k => `${keyPrefix}${k}`);
+
     const { data: rows, error } = await supabase
       .from('data_store')
       .select('key, value')
-      .in('key', VALID_KEYS);
+      .in('key', keysToFetch);
 
     if (error) {
       console.error('[API /data GET] Supabase error:', error.message);
@@ -37,7 +64,9 @@ export async function GET() {
 
     const result: Record<string, unknown> = {};
     for (const row of rows || []) {
-      result[row.key] = row.value;
+      // Strip the prefix to normalize keys in the response
+      const normalizedKey = keyPrefix ? row.key.replace(keyPrefix, '') : row.key;
+      result[normalizedKey] = row.value;
     }
 
     // Ensure all keys exist with defaults
@@ -59,6 +88,7 @@ export async function GET() {
 
 /**
  * PUT /api/data — Write partial updates to Supabase
+ * Always writes to the ACTIVE season (no prefix).
  *
  * Body: { [key]: data }
  * Example: { "players": [...], "standings": [...] }

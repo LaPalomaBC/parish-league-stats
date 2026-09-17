@@ -45,6 +45,7 @@ export default function StatsChat() {
       matches: data.matches,
       playerStats: data.playerStats,
       standings: data.standings,
+      seasonLabel: data.currentSeason?.label,
     });
   }, [data]);
 

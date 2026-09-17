@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Settings, Users, FileSpreadsheet, CalendarDays, Lock, Eye, EyeOff, LogOut, KeyRound } from 'lucide-react';
+import { Settings, Users, FileSpreadsheet, CalendarDays, Lock, Eye, EyeOff, LogOut, KeyRound, Archive } from 'lucide-react';
+import { useLeagueData } from '@/lib/DataContext';
 
 const adminTabs = [
   { id: 'equipos', label: 'Equipos', href: '/admin', icon: Settings },
@@ -16,6 +17,7 @@ const AUTH_KEY = 'parish-admin-auth';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { isArchive, currentSeason, seasons, setCurrentSeasonId } = useLeagueData();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [password, setPassword] = useState('');
@@ -241,6 +243,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Authenticated — show admin panel
   return (
     <div className="page-container">
+      {/* Archive Mode Notice */}
+      {isArchive && currentSeason && (
+        <div className="archive-notice animate-fade-in-up">
+          <Archive size={20} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+          <div>
+            <strong>Modo archivo — {currentSeason.label}</strong>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', marginTop: 2 }}>
+              Esta temporada está archivada. Cambia a la temporada activa para hacer cambios.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              const active = seasons.find(s => s.isActive);
+              if (active) setCurrentSeasonId(active.id);
+            }}
+            style={{
+              marginLeft: 'auto',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              background: 'var(--color-primary)',
+              color: '#fff',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 600,
+              fontFamily: 'var(--font-body)',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            Ir a temporada actual
+          </button>
+        </div>
+      )}
+
       {/* Admin Header */}
       <div className="section animate-fade-in-up">
         <div style={{
@@ -356,7 +393,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }}>
           {adminTabs.map((tab) => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+            const isActiveTab = activeTab === tab.id;
             return (
               <Link
                 key={tab.id}
@@ -368,15 +405,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   padding: 'var(--space-2) var(--space-5)',
                   borderRadius: 'var(--radius-md)',
                   border: 'none',
-                  background: isActive ? 'var(--color-bg-card)' : 'transparent',
-                  color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                  fontWeight: isActive ? 600 : 500,
+                  background: isActiveTab ? 'var(--color-bg-card)' : 'transparent',
+                  color: isActiveTab ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                  fontWeight: isActiveTab ? 600 : 500,
                   fontSize: 'var(--text-sm)',
                   fontFamily: 'var(--font-body)',
                   cursor: 'pointer',
                   transition: 'all var(--transition-fast)',
-                  boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
+                  boxShadow: isActiveTab ? 'var(--shadow-sm)' : 'none',
                   textDecoration: 'none',
+                  opacity: isArchive ? 0.5 : 1,
+                  pointerEvents: isArchive ? 'none' : 'auto',
                 }}
               >
                 <Icon size={16} />
@@ -387,7 +426,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
 
-      {children}
+      {/* Content — disabled in archive mode */}
+      {isArchive ? (
+        <div style={{ opacity: 0.4, pointerEvents: 'none', filter: 'grayscale(0.5)' }}>
+          {children}
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }
+

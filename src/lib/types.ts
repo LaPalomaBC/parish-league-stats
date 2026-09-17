@@ -77,6 +77,13 @@ export interface StandingRow {
   leaguePoints: number;
 }
 
+export interface Season {
+  id: string;           // e.g. "2025-26", "2026-27"
+  label: string;        // e.g. "Temporada 2025/26"
+  isActive: boolean;    // true for the current live season
+  archivedAt?: string;  // ISO date when archived (only for past seasons)
+}
+
 export interface PlayerAverages {
   playerId: string;
   playerName: string;
