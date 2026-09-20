@@ -207,6 +207,7 @@ export function createMatch(
   matchday: number,
   matchType: 'regular' | 'copa' | 'playoff',
   existingMatches: Match[],
+  matchDate?: string,
 ): Match {
   // Check if there's an existing unplayed match between these teams (prefer same matchday)
   const existing = existingMatches.find(m =>
@@ -220,8 +221,11 @@ export function createMatch(
      (m.homeTeamId === awayTeamId && m.awayTeamId === homeTeamId))
   );
 
+  // Resolve the date: explicit param > existing calendar date > today
+  const resolvedDate = matchDate || existing?.matchDate || new Date().toISOString().split('T')[0];
+
   if (existing) {
-    // Update existing match — preserve the original matchDate set via calendar
+    // Update existing match — use the resolved date
     return {
       ...existing,
       homeTeamId,
@@ -231,7 +235,7 @@ export function createMatch(
       matchday,
       matchType,
       isPlayed: true,
-      matchDate: existing.matchDate || new Date().toISOString().split('T')[0],
+      matchDate: resolvedDate,
     };
   }
 
@@ -244,7 +248,7 @@ export function createMatch(
   return {
     id: `m-${String(maxId + 1).padStart(2, '0')}`,
     matchday,
-    matchDate: new Date().toISOString().split('T')[0],
+    matchDate: resolvedDate,
     homeTeamId,
     awayTeamId,
     homeScore,
@@ -504,6 +508,7 @@ export function executeImport(
   currentPlayers: Player[],
   currentTeams: Team[],
   fileName: string,
+  matchDate?: string,
 ): ImportResult {
   // 0. Check for forfeit (incomparecencia)
   const homeForfeit = detectForfeit(acta.homePlayers);
@@ -521,7 +526,7 @@ export function executeImport(
   const finalAwayScore = forfeitInfo.awayScore;
 
   // 1. Create/update match with (possibly overridden) score
-  const match = createMatch(homeTeamId, awayTeamId, finalHomeScore, finalAwayScore, matchday, matchType, currentMatches);
+  const match = createMatch(homeTeamId, awayTeamId, finalHomeScore, finalAwayScore, matchday, matchType, currentMatches, matchDate);
 
   // 2. Match/create players for both teams (even for forfeits, to register them)
   let workingPlayers = [...currentPlayers];

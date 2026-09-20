@@ -39,6 +39,7 @@ export default function ImportarPage() {
   // Import options
   const [selectedMatchType, setSelectedMatchType] = useState<'regular' | 'copa' | 'playoff'>('regular');
   const [manualMatchday, setManualMatchday] = useState(1);
+  const [matchDate, setMatchDate] = useState('');  // YYYY-MM-DD
 
   // Forfeit (incomparecencia) — manual selector
   const [manualForfeit, setManualForfeit] = useState<'none' | 'home' | 'away'>('none');
@@ -88,6 +89,11 @@ export default function ImportarPage() {
   const effectiveMatchday = selectedMatchType === 'regular'
     ? (autoDetectedMatch?.matchday ?? 0)
     : manualMatchday;
+
+  // Auto-populate matchDate from detected calendar match
+  const calendarDate = autoDetectedMatch?.matchDate || '';
+  // If matchDate hasn't been manually set, use the calendar date
+  const effectiveMatchDate = matchDate || calendarDate;
 
   // Duplicate check: it's a duplicate only if there are NO unplayed matches
   // between these teams in the calendar (all slots already filled)
@@ -189,6 +195,7 @@ export default function ImportarPage() {
         players,
         teams,
         fileName,
+        effectiveMatchDate || undefined,
       );
 
       // Save everything via context
@@ -228,6 +235,7 @@ export default function ImportarPage() {
       setError(null);
       setImportResult(null);
       setManualForfeit('none');
+      setMatchDate('');
       setStep('preview');
     } else {
       handleReset();
@@ -252,6 +260,7 @@ export default function ImportarPage() {
     setCurrentQueueIndex(0);
     setImportedCount(0);
     setManualForfeit('none');
+    setMatchDate('');
   };
 
   const hasMoreInQueue = currentQueueIndex + 1 < queue.length;
@@ -557,6 +566,43 @@ export default function ImportarPage() {
                   />
                 </div>
               )}
+
+              {/* Match Date */}
+              <div>
+                <label style={labelStyle}>📅 Fecha del partido</label>
+                <input
+                  type="date"
+                  value={effectiveMatchDate}
+                  onChange={(e) => setMatchDate(e.target.value)}
+                  style={{ ...selectStyle, width: 170 }}
+                />
+                {calendarDate && !matchDate && (
+                  <div style={{
+                    marginTop: 'var(--space-1)',
+                    fontSize: '10px',
+                    color: 'var(--color-success)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}>
+                    <Check size={10} />
+                    Fecha del calendario
+                  </div>
+                )}
+                {matchDate && matchDate !== calendarDate && (
+                  <div style={{
+                    marginTop: 'var(--space-1)',
+                    fontSize: '10px',
+                    color: 'var(--color-accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}>
+                    <AlertCircle size={10} />
+                    Fecha modificada manualmente
+                  </div>
+                )}
+              </div>
               {/* Forfeit selector */}
               <div>
                 <label style={labelStyle}>Incomparecencia</label>
