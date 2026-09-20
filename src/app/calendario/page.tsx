@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, List } from 'lucide-react';
+import Link from 'next/link';
 import { useLeagueData } from '@/lib/DataContext';
 import { formatDate, getTeam } from '@/lib/data';
 import MatchCard from '@/components/MatchCard';
@@ -388,11 +389,8 @@ export default function CalendarioPage() {
                       const mdLabel = m.matchType === 'copa' ? 'COP'
                         : m.matchType === 'playoff' ? 'PO'
                         : `J${m.matchday}`;
-                      return (
-                        <div
-                          key={m.id}
-                          className={`cal-match-pill ${m.isPlayed ? 'played' : 'upcoming'}`}
-                        >
+                      const pillContent = (
+                        <>
                           <span className="cal-pill-md">{mdLabel}</span>
                           <span>{home?.shortName}</span>
                           {m.isPlayed ? (
@@ -401,6 +399,26 @@ export default function CalendarioPage() {
                             <span className="cal-pill-vs">vs</span>
                           )}
                           <span>{away?.shortName}</span>
+                        </>
+                      );
+                      if (m.isPlayed) {
+                        return (
+                          <Link
+                            key={m.id}
+                            href={`/partidos/${m.id}`}
+                            className={`cal-match-pill played clickable`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {pillContent}
+                          </Link>
+                        );
+                      }
+                      return (
+                        <div
+                          key={m.id}
+                          className="cal-match-pill upcoming"
+                        >
+                          {pillContent}
                         </div>
                       );
                     })}

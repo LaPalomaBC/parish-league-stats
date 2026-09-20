@@ -1589,6 +1589,18 @@ body:has(.archive-banner) .navbar {
   border-left-color: var(--color-success);
 }
 
+.cal-match-pill.clickable {
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cal-match-pill.clickable:hover {
+  background: var(--color-primary-bg);
+  border-left-color: var(--color-primary);
+  transform: translateX(2px);
+}
+
 .cal-match-pill.upcoming {
   border-left-color: var(--color-accent);
 }
