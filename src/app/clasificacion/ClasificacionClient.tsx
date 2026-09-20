@@ -3,9 +3,9 @@
 import { useRef, useState, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import { Download, Share2, Loader2, Trophy, Info } from 'lucide-react';
+import { useLeagueData } from '@/lib/DataContext';
 import StandingsTable from '@/components/StandingsTable';
 import StandingsChart from '@/components/StandingsChart';
-import type { StandingRow } from '@/lib/types';
 
 function CaptureBtn({ onClick, busy }: { onClick: () => void; busy: boolean }) {
   const [isMobile, setIsMobile] = useState(false);
@@ -68,7 +68,8 @@ async function captureAndExport(element: HTMLElement | null, filename: string) {
   }
 }
 
-export default function ClasificacionClient({ standings }: { standings: StandingRow[] }) {
+export default function ClasificacionClient() {
+  const { standings } = useLeagueData();
   const hasStandings = standings.length > 0;
   const tableRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);

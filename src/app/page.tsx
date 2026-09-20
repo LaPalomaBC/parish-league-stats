@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Trophy,
   Flame,
@@ -8,53 +10,77 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
-import {
-  getTeamsFromDisk,
-  getStandingsFromDisk,
-  getPlayedMatchesFromDisk,
-  getUpcomingMatchesFromDisk,
-  getLatestPlayedMatchdayFromDisk,
-  getMatchdayMatchesFromDisk,
-  getMatchesFromDisk,
-} from '@/lib/serverData';
+import { useMemo } from 'react';
+import { useLeagueData } from '@/lib/DataContext';
+import { getTeam, formatDate } from '@/lib/data';
 import StandingsTable from '@/components/StandingsTable';
 import MatchCard from '@/components/MatchCard';
 import TopScorersChart from '@/components/TopScorersChart';
 import StandingsChart from '@/components/StandingsChart';
 import { SeasonHeroSubtitle, SeasonPageFooter } from '@/components/SeasonLabels';
 
-export const dynamic = 'force-dynamic';
+export default function HomePage() {
+  const { teams, matches, standings, isLoading } = useLeagueData();
 
-export default async function HomePage() {
-  const teams = await getTeamsFromDisk();
-  const standings = await getStandingsFromDisk();
-  const allMatches = await getMatchesFromDisk();
-  const latestMatchday = await getLatestPlayedMatchdayFromDisk();
-  const latestMatches = latestMatchday > 0 ? await getMatchdayMatchesFromDisk(latestMatchday) : [];
-  const totalPlayed = (await getPlayedMatchesFromDisk()).length;
+  // Computed data
+  const latestMatchday = useMemo(() => {
+    const played = matches.filter(m => m.isPlayed);
+    return played.length > 0 ? Math.max(...played.map(m => m.matchday)) : 0;
+  }, [matches]);
+
+  const latestMatches = useMemo(() => {
+    if (latestMatchday <= 0) return [];
+    return matches.filter(m => m.matchday === latestMatchday);
+  }, [matches, latestMatchday]);
+
+  const totalPlayed = useMemo(() => {
+    return matches.filter(m => m.isPlayed).length;
+  }, [matches]);
+
   const leader = standings.length > 0 ? standings[0] : null;
   const leaderTeam = leader ? teams.find(t => t.id === leader.teamId) : null;
 
   // Upcoming matches sorted by date (across all matchdays), take first 8
-  const upcomingByDate = (await getUpcomingMatchesFromDisk())
-    .sort((a, b) => {
-      if (!a.matchDate && !b.matchDate) return a.matchday - b.matchday;
-      if (!a.matchDate) return 1;
-      if (!b.matchDate) return -1;
-      return a.matchDate.localeCompare(b.matchDate);
-    })
-    .slice(0, 8);
+  const upcomingByDate = useMemo(() => {
+    return matches
+      .filter(m => !m.isPlayed)
+      .sort((a, b) => {
+        if (!a.matchDate && !b.matchDate) return a.matchday - b.matchday;
+        if (!a.matchDate) return 1;
+        if (!b.matchDate) return -1;
+        return a.matchDate.localeCompare(b.matchDate);
+      })
+      .slice(0, 8);
+  }, [matches]);
 
   // Next matchday (first unplayed matchday)
-  const unplayedMatchdays = allMatches
-    .filter(m => !m.isPlayed)
-    .map(m => m.matchday);
-  const nextMatchday = unplayedMatchdays.length > 0 ? Math.min(...unplayedMatchdays) : 0;
-  const nextMatchdayMatches = nextMatchday > 0
-    ? allMatches.filter(m => m.matchday === nextMatchday)
-    : [];
+  const nextMatchday = useMemo(() => {
+    const unplayedMatchdays = matches
+      .filter(m => !m.isPlayed)
+      .map(m => m.matchday);
+    return unplayedMatchdays.length > 0 ? Math.min(...unplayedMatchdays) : 0;
+  }, [matches]);
+
+  const nextMatchdayMatches = useMemo(() => {
+    if (nextMatchday <= 0) return [];
+    return matches.filter(m => m.matchday === nextMatchday);
+  }, [matches, nextMatchday]);
 
   const hasData = standings.length > 0 || latestMatches.length > 0;
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <div className="hero animate-fade-in-up">
+          <h1 className="hero-title">Parish League</h1>
+          <SeasonHeroSubtitle />
+        </div>
+        <div className="section animate-fade-in-up delay-1" style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
+          <p style={{ color: 'var(--color-text-tertiary)' }}>Cargando datos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

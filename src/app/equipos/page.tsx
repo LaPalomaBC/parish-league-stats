@@ -1,27 +1,33 @@
+'use client';
+
 import { Users } from 'lucide-react';
 import Link from 'next/link';
-import { getTeamsFromDisk, getStandingsFromDisk } from '@/lib/serverData';
+import { useMemo } from 'react';
+import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
-import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
-
-export const metadata: Metadata = {
-  title: 'Equipos — Parish League Stats',
-  description: 'Todos los equipos de la Liga Parroquial de Baloncesto de Madrid.',
-};
-
-export default async function EquiposPage() {
-  const teams = await getTeamsFromDisk();
-  const standings = await getStandingsFromDisk();
+export default function EquiposPage() {
+  const { teams, standings, isLoading } = useLeagueData();
 
   // Sort teams by standings position (or alphabetically if no standings yet)
-  const sortedTeams = [...teams].sort((a, b) => {
-    const posA = standings.find(s => s.teamId === a.id)?.position ?? 99;
-    const posB = standings.find(s => s.teamId === b.id)?.position ?? 99;
-    if (posA !== posB) return posA - posB;
-    return a.name.localeCompare(b.name);
-  });
+  const sortedTeams = useMemo(() => {
+    return [...teams].sort((a, b) => {
+      const posA = standings.find(s => s.teamId === a.id)?.position ?? 99;
+      const posB = standings.find(s => s.teamId === b.id)?.position ?? 99;
+      if (posA !== posB) return posA - posB;
+      return a.name.localeCompare(b.name);
+    });
+  }, [teams, standings]);
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <div className="section animate-fade-in-up" style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
+          <p style={{ color: 'var(--color-text-tertiary)' }}>Cargando equipos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

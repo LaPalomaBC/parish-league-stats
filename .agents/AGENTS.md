@@ -326,9 +326,10 @@ Configuración básica de PWA en `public/manifest.json`:
 ## 13. Patrones de Código
 
 ### Server vs Client Components
-- Páginas principales: **Server Components** async (fetching directo de Supabase)
-- Sub-componentes interactivos: **Client Components** (`'use client'`) que usan `useLeagueData()`
-- Patrón habitual: `page.tsx` (Server) → `XxxClient.tsx` (Client) con datos pasados como props o leídos de Context
+- Páginas principales con datos dinámicos: **Client Components** (`'use client'`) que usan `useLeagueData()` del `DataContext`. Esto permite que el cambio de temporada (multi-season) funcione correctamente.
+- Páginas con rutas dinámicas (`[teamId]`, `[playerId]`, `[matchId]`): Server Component shell (para metadata/SEO) → Client Component para renderizado de datos.
+- Metadata SEO: Se define en `layout.tsx` (Server Component) cuando la `page.tsx` es Client Component.
+- **Regla**: No usar `getXxxFromDisk()` de `serverData.ts` para datos que deban respetar la temporada seleccionada. Usar siempre `useLeagueData()`.
 
 ### Convención de nombres
 - Archivos de componente: `PascalCase.tsx`
@@ -428,3 +429,4 @@ Estos archivos ya NO son la fuente primaria (Supabase lo es), pero `initData.ts`
 | 2026-09-17 | **Multi-temporada**: Sistema de archivo histórico implementado. Selector de temporada en Navbar, protección admin en modo archivo, API con soporte `?season=`, script de archivado. |
 | 2026-09-17 | **Calendario 2026/27**: Creados los 45 partidos de las 9 jornadas de la Liga Regular FBM en Supabase (todos pendientes de jugar, listos para recibir actas). Inicializada la clasificación. Mejorada la selección de jornada activa en `/calendario` para priorizar la jornada pendiente más próxima en lugar de saltar a J9. Directiva en `directives/calendar-import.md`. |
 | 2026-09-17 | **Fix Matching Jugadores en Actas**: Corregido bug en `importEngine.ts` que priorizaba el dorsal sobre el nombre al importar actas, lo que causaba falsos positivos cuando jugadores cambiaban de dorsal entre temporadas (ej. Gabriel Rosas duplicado, Pedro Sandín y Juan Ruiz Cano no creados). Ahora prioriza coincidencia exacta y difusa por nombre y solo usa el dorsal si hay compatibilidad de nombre. Reparados los datos de `m-02` en Supabase con `repair-m02.js`. |
+| 2026-09-20 | **Fix Multi-Temporada: Datos archivados no se mostraban**. Convertidas las páginas Home (`/`), Clasificación (`/clasificacion`) y Equipos (`/equipos`) de Server Components a Client Components para que lean datos del `DataContext` (que respeta la temporada seleccionada) en vez de leer directamente de Supabase sin prefijo. Añadidos `layout.tsx` para SEO metadata en `/clasificacion` y `/equipos`. Eliminado `ClasificacionClient` como wrapper intermedio innecesario — ahora lee standings del context. |
