@@ -385,11 +385,15 @@ export default function CalendarioPage() {
                     {day.isCurrentMonth && dayMatches.slice(0, maxPills).map(m => {
                       const home = getTeam(m.homeTeamId);
                       const away = getTeam(m.awayTeamId);
+                      const mdLabel = m.matchType === 'copa' ? 'COP'
+                        : m.matchType === 'playoff' ? 'PO'
+                        : `J${m.matchday}`;
                       return (
                         <div
                           key={m.id}
                           className={`cal-match-pill ${m.isPlayed ? 'played' : 'upcoming'}`}
                         >
+                          <span className="cal-pill-md">{mdLabel}</span>
                           <span>{home?.shortName}</span>
                           {m.isPlayed ? (
                             <span className="cal-pill-score">{m.homeScore}-{m.awayScore}</span>
