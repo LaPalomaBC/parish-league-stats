@@ -668,6 +668,13 @@ a:hover {
   letter-spacing: -0.02em;
 }
 
+.team-logo.xs {
+  width: 20px;
+  height: 20px;
+  font-size: 7.5px;
+  border-radius: var(--radius-xs);
+}
+
 .team-logo.sm {
   width: 28px;
   height: 28px;
@@ -1740,6 +1747,110 @@ body:has(.archive-banner) .navbar {
   .cal-day {
     min-height: 52px;
     padding: 3px;
+  }
+}
+
+/* ============================================
+   Calendar Team Filter Bar
+   ============================================ */
+.cal-filter-bar {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.cal-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cal-filter-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  color: var(--color-danger);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+}
+
+.cal-filter-clear-btn:hover {
+  background: rgba(255, 59, 48, 0.15);
+  border-color: var(--color-danger);
+}
+
+.cal-team-chips-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-wrap: wrap;
+}
+
+.cal-team-chips-container::-webkit-scrollbar {
+  display: none;
+}
+
+.cal-team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border-light);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cal-team-chip:hover {
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.cal-team-chip.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.15);
+}
+
+.cal-team-chip-count {
+  font-size: 10px;
+  opacity: 0.6;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .cal-team-chips-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
   }
 }
 

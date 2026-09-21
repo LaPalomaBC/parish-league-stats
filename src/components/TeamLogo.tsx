@@ -2,10 +2,10 @@ import { Team } from '@/lib/types';
 
 interface TeamLogoProps {
   team: Team;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const SIZES = { sm: 28, md: 40, lg: 64, xl: 96 };
+const SIZES = { xs: 20, sm: 28, md: 40, lg: 64, xl: 96 };
 
 export default function TeamLogo({ team, size = 'md' }: TeamLogoProps) {
   const px = SIZES[size];

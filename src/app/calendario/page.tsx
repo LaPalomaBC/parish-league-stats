@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, List } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { CalendarDays, ChevronLeft, ChevronRight, List, Filter, X } from 'lucide-react';
 import Link from 'next/link';
 import { useLeagueData } from '@/lib/DataContext';
 import { formatDate, getTeam } from '@/lib/data';
 import MatchCard from '@/components/MatchCard';
+import TeamLogo from '@/components/TeamLogo';
 
 // ============================================
 // HELPERS
@@ -80,8 +81,41 @@ const DOW_HEADERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 type ViewMode = 'jornadas' | 'calendario';
 
 export default function CalendarioPage() {
-  const { matches } = useLeagueData();
+  const { matches, teams } = useLeagueData();
   const [viewMode, setViewMode] = useState<ViewMode>('jornadas');
+  const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
+
+  // Read URL query parameter for team preselection (e.g. /calendario?equipo=team-01)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const teamParam = params.get('equipo') || params.get('team');
+      if (teamParam && teams.some(t => t.id === teamParam)) {
+        setSelectedTeamIds([teamParam]);
+      }
+    }
+  }, [teams]);
+
+  // Teams sorted by ID (league official order)
+  const sortedTeams = useMemo(() => {
+    return [...teams].sort((a, b) => a.id.localeCompare(b.id));
+  }, [teams]);
+
+  const toggleTeam = (teamId: string) => {
+    setSelectedTeamIds(prev =>
+      prev.includes(teamId)
+        ? prev.filter(id => id !== teamId)
+        : [...prev, teamId]
+    );
+  };
+
+  // Filtered matches based on selected teams
+  const filteredMatches = useMemo(() => {
+    if (selectedTeamIds.length === 0) return matches;
+    return matches.filter(m =>
+      selectedTeamIds.includes(m.homeTeamId) || selectedTeamIds.includes(m.awayTeamId)
+    );
+  }, [matches, selectedTeamIds]);
 
   // ── Shared data ──
   const maxMatchday = useMemo(() => {
@@ -117,7 +151,7 @@ export default function CalendarioPage() {
   const activeMatchday = selectedMatchday ?? defaultMatchday;
 
   const matchdayMatches = useMemo(() => {
-    return matches
+    return filteredMatches
       .filter(m => m.matchday === activeMatchday)
       .sort((a, b) => {
         if (a.isPlayed !== b.isPlayed) return a.isPlayed ? -1 : 1;
@@ -131,12 +165,12 @@ export default function CalendarioPage() {
         if (b.matchTime) return 1;
         return a.id.localeCompare(b.id);
       });
-  }, [matches, activeMatchday]);
+  }, [filteredMatches, activeMatchday]);
 
   // ── Calendar view state ──
   const matchesByDate = useMemo(() => {
     const map: Record<string, typeof matches> = {};
-    for (const m of matches) {
+    for (const m of filteredMatches) {
       if (m.matchDate) {
         const dateKey = m.matchDate.split('T')[0];
         if (!map[dateKey]) map[dateKey] = [];
@@ -155,7 +189,7 @@ export default function CalendarioPage() {
       });
     }
     return map;
-  }, [matches]);
+  }, [filteredMatches]);
 
   // Determine the month range from match dates
   const monthRange = useMemo(() => {
@@ -265,6 +299,81 @@ export default function CalendarioPage() {
         </div>
 
         {/* ════════════════════════════════════════ */}
+        {/* TEAM FILTER BAR                         */}
+        {/* ════════════════════════════════════════ */}
+        <div className="cal-filter-bar" id="calendar-team-filter">
+          <div className="cal-filter-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <Filter size={14} style={{ color: selectedTeamIds.length > 0 ? 'var(--color-primary)' : 'var(--color-text-tertiary)' }} />
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-secondary)' }}>
+                Filtrar por equipo:
+              </span>
+              {selectedTeamIds.length > 0 && (
+                <span className="badge badge-primary" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                  {selectedTeamIds.length} {selectedTeamIds.length === 1 ? 'equipo' : 'equipos'}
+                </span>
+              )}
+            </div>
+
+            {selectedTeamIds.length > 0 && (
+              <button
+                onClick={() => setSelectedTeamIds([])}
+                className="cal-filter-clear-btn"
+                title="Ver todos los partidos de la liga"
+              >
+                <X size={12} />
+                Ver todos ({matches.length})
+              </button>
+            )}
+          </div>
+
+          {/* Quick Team Chips */}
+          <div className="cal-team-chips-container">
+            <button
+              onClick={() => setSelectedTeamIds([])}
+              className={`cal-team-chip ${selectedTeamIds.length === 0 ? 'active' : ''}`}
+            >
+              <span>Todos los equipos</span>
+              <span className="cal-team-chip-count">{matches.length}</span>
+            </button>
+
+            {sortedTeams.map(team => {
+              const isSelected = selectedTeamIds.includes(team.id);
+              const teamMatchesCount = matches.filter(m => m.homeTeamId === team.id || m.awayTeamId === team.id).length;
+
+              return (
+                <button
+                  key={team.id}
+                  onClick={() => toggleTeam(team.id)}
+                  className={`cal-team-chip ${isSelected ? 'active' : ''}`}
+                  style={isSelected ? {
+                    borderColor: team.primaryColor,
+                    background: `${team.primaryColor}15`,
+                    color: 'var(--color-text-primary)',
+                  } : undefined}
+                  title={`${team.name} (${teamMatchesCount} partidos)`}
+                >
+                  <TeamLogo team={team} size="xs" />
+                  <span style={{ fontWeight: isSelected ? 700 : 500 }}>{team.shortName}</span>
+                  {isSelected ? (
+                    <span style={{
+                      width: 14, height: 14, borderRadius: '50%',
+                      background: team.primaryColor, color: '#fff',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '9px', marginLeft: 2,
+                    }}>
+                      ✓
+                    </span>
+                  ) : (
+                    <span className="cal-team-chip-count">{teamMatchesCount}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ════════════════════════════════════════ */}
         {/* JORNADAS VIEW                           */}
         {/* ════════════════════════════════════════ */}
         {viewMode === 'jornadas' && (
@@ -304,6 +413,11 @@ export default function CalendarioPage() {
                     Jornada Extra
                   </span>
                 )}
+                {selectedTeamIds.length > 0 && (
+                  <span className="badge badge-accent" style={{ marginLeft: 'var(--space-2)', fontSize: '10px' }}>
+                    {matchdayMatches.length} {matchdayMatches.length === 1 ? 'partido filtrado' : 'partidos filtrados'}
+                  </span>
+                )}
               </h2>
               {matchdayDates[activeMatchday] && (
                 <p style={{
@@ -326,10 +440,36 @@ export default function CalendarioPage() {
               ) : (
                 <div className="card-flat" style={{
                   textAlign: 'center',
-                  padding: 'var(--space-12)',
-                  color: 'var(--color-text-tertiary)',
+                  padding: 'var(--space-10) var(--space-6)',
+                  color: 'var(--color-text-secondary)',
                 }}>
-                  No hay partidos programados para esta jornada
+                  {selectedTeamIds.length > 0 ? (
+                    <>
+                      <p style={{ fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+                        {selectedTeamIds.length === 1
+                          ? `El equipo seleccionado no juega en la Jornada ${activeMatchday}`
+                          : `Ninguno de los equipos seleccionados juega en la Jornada ${activeMatchday}`}
+                      </p>
+                      <button
+                        onClick={() => setSelectedTeamIds([])}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--color-primary)',
+                          fontSize: 'var(--text-xs)',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Ver todos los partidos de la jornada
+                      </button>
+                    </>
+                  ) : (
+                    <span style={{ color: 'var(--color-text-tertiary)' }}>
+                      No hay partidos programados para esta jornada
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -461,6 +601,7 @@ export default function CalendarioPage() {
                   </span>
                   <span className="cal-day-detail-badge">
                     {selectedDayMatches.length} {selectedDayMatches.length === 1 ? 'partido' : 'partidos'}
+                    {selectedTeamIds.length > 0 && ' (filtrado)'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', maxWidth: 700 }}>
