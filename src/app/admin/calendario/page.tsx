@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { CalendarDays, Plus, Trash2, Check, Save, AlertCircle, GripVertical, Ban } from 'lucide-react';
+import { CalendarDays, Clock, Plus, Trash2, Check, Save, AlertCircle, GripVertical, Ban } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
 import { recalculateStandings } from '@/lib/importEngine';
 import type { Match, Team } from '@/lib/types';
@@ -64,6 +64,7 @@ export default function CalendarioAdminPage() {
       id: nextMatchId(),
       matchday: newMatchday,
       matchDate: '',
+      matchTime: '',
       homeTeamId: '',
       awayTeamId: '',
       homeScore: null,
@@ -80,6 +81,7 @@ export default function CalendarioAdminPage() {
       id: nextMatchId(),
       matchday,
       matchDate: '',
+      matchTime: '',
       homeTeamId: '',
       awayTeamId: '',
       homeScore: null,
@@ -114,6 +116,13 @@ export default function CalendarioAdminPage() {
   const handleMatchDate = (matchId: string, date: string) => {
     setEditingMatches(prev => prev.map(m =>
       m.id === matchId ? { ...m, matchDate: date } : m
+    ));
+  };
+
+  // Update individual match time
+  const handleMatchTime = (matchId: string, time: string) => {
+    setEditingMatches(prev => prev.map(m =>
+      m.id === matchId ? { ...m, matchTime: time } : m
     ));
   };
 
@@ -336,6 +345,7 @@ export default function CalendarioAdminPage() {
                     onChangeHome={(teamId) => handleMatchField(match.id, 'homeTeamId', teamId)}
                     onChangeAway={(teamId) => handleMatchField(match.id, 'awayTeamId', teamId)}
                     onChangeDate={(date) => handleMatchDate(match.id, date)}
+                    onChangeTime={(time) => handleMatchTime(match.id, time)}
                     onRemove={() => handleRemoveMatch(match.id)}
                     onForfeit={(forfeitTeam) => handleForfeit(match.id, forfeitTeam)}
                   />
@@ -423,11 +433,12 @@ interface MatchRowProps {
   onChangeHome: (teamId: string) => void;
   onChangeAway: (teamId: string) => void;
   onChangeDate: (date: string) => void;
+  onChangeTime: (time: string) => void;
   onRemove: () => void;
   onForfeit: (forfeitTeam: 'home' | 'away') => void;
 }
 
-function MatchRow({ match, teams, usedTeams, onChangeHome, onChangeAway, onChangeDate, onRemove, onForfeit }: MatchRowProps) {
+function MatchRow({ match, teams, usedTeams, onChangeHome, onChangeAway, onChangeDate, onChangeTime, onRemove, onForfeit }: MatchRowProps) {
   const homeTeam = teams.find(t => t.id === match.homeTeamId);
   const awayTeam = teams.find(t => t.id === match.awayTeamId);
 
@@ -441,7 +452,7 @@ function MatchRow({ match, teams, usedTeams, onChangeHome, onChangeAway, onChang
   ).filter(t => t.id !== match.homeTeamId);
 
   if (match.isPlayed) {
-    // Played match — read-only
+    // Played match — results are read-only, but date & time can be adjusted
     return (
       <div style={{
         display: 'flex',
@@ -455,12 +466,24 @@ function MatchRow({ match, teams, usedTeams, onChangeHome, onChangeAway, onChang
       }}>
         <GripVertical size={14} style={{ color: 'var(--color-text-tertiary)', opacity: 0.3 }} />
 
-        {/* Date display */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', minWidth: 100 }}>
-          <CalendarDays size={12} style={{ color: 'var(--color-text-tertiary)' }} />
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
-            {match.matchDate ? new Date(match.matchDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—'}
-          </span>
+        {/* Date & Time inputs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+          <CalendarDays size={12} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+          <input
+            type="date"
+            value={match.matchDate}
+            onChange={(e) => onChangeDate(e.target.value)}
+            style={{ ...dateInputStyle, fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)', minWidth: 115 }}
+            title="Fecha del partido"
+          />
+          <Clock size={12} style={{ color: 'var(--color-text-tertiary)', marginLeft: 4, flexShrink: 0 }} />
+          <input
+            type="time"
+            value={match.matchTime || ''}
+            onChange={(e) => onChangeTime(e.target.value)}
+            style={{ ...dateInputStyle, fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)', width: 85 }}
+            title="Hora del partido"
+          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flex: 1 }}>
@@ -512,14 +535,23 @@ function MatchRow({ match, teams, usedTeams, onChangeHome, onChangeAway, onChang
     }}>
       <GripVertical size={14} style={{ color: 'var(--color-text-tertiary)', opacity: 0.3 }} />
 
-      {/* Date picker per match */}
+      {/* Date & Time pickers per match */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-        <CalendarDays size={12} style={{ color: 'var(--color-text-tertiary)' }} />
+        <CalendarDays size={12} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
         <input
           type="date"
           value={match.matchDate}
           onChange={(e) => onChangeDate(e.target.value)}
-          style={{ ...dateInputStyle, fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)', minWidth: 120 }}
+          style={{ ...dateInputStyle, fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)', minWidth: 115 }}
+          title="Fecha del partido"
+        />
+        <Clock size={12} style={{ color: 'var(--color-text-tertiary)', marginLeft: 4, flexShrink: 0 }} />
+        <input
+          type="time"
+          value={match.matchTime || ''}
+          onChange={(e) => onChangeTime(e.target.value)}
+          style={{ ...dateInputStyle, fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)', width: 85 }}
+          title="Hora del partido"
         />
       </div>
 

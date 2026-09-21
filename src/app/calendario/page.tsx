@@ -121,7 +121,15 @@ export default function CalendarioPage() {
       .filter(m => m.matchday === activeMatchday)
       .sort((a, b) => {
         if (a.isPlayed !== b.isPlayed) return a.isPlayed ? -1 : 1;
-        return 0;
+        if (a.matchDate && b.matchDate && a.matchDate !== b.matchDate) {
+          return a.matchDate.localeCompare(b.matchDate);
+        }
+        if (a.matchTime && b.matchTime) {
+          return a.matchTime.localeCompare(b.matchTime);
+        }
+        if (a.matchTime) return -1;
+        if (b.matchTime) return 1;
+        return a.id.localeCompare(b.id);
       });
   }, [matches, activeMatchday]);
 
@@ -134,6 +142,17 @@ export default function CalendarioPage() {
         if (!map[dateKey]) map[dateKey] = [];
         map[dateKey].push(m);
       }
+    }
+    // Sort matches within each date by matchTime (if present), then matchday / id
+    for (const dateKey in map) {
+      map[dateKey].sort((a, b) => {
+        if (a.matchTime && b.matchTime) {
+          return a.matchTime.localeCompare(b.matchTime);
+        }
+        if (a.matchTime) return -1;
+        if (b.matchTime) return 1;
+        return a.matchday - b.matchday;
+      });
     }
     return map;
   }, [matches]);
@@ -392,6 +411,9 @@ export default function CalendarioPage() {
                       const pillContent = (
                         <>
                           <span className="cal-pill-md">{mdLabel}</span>
+                          {m.matchTime && (
+                            <span className="cal-pill-time">{m.matchTime}</span>
+                          )}
                           <span>{home?.shortName}</span>
                           {m.isPlayed ? (
                             <span className="cal-pill-score">{m.homeScore}-{m.awayScore}</span>

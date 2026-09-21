@@ -48,7 +48,12 @@ export default function HomePage() {
         if (!a.matchDate && !b.matchDate) return a.matchday - b.matchday;
         if (!a.matchDate) return 1;
         if (!b.matchDate) return -1;
-        return a.matchDate.localeCompare(b.matchDate);
+        const dateCmp = a.matchDate.localeCompare(b.matchDate);
+        if (dateCmp !== 0) return dateCmp;
+        if (a.matchTime && b.matchTime) return a.matchTime.localeCompare(b.matchTime);
+        if (a.matchTime) return -1;
+        if (b.matchTime) return 1;
+        return a.matchday - b.matchday;
       })
       .slice(0, 8);
   }, [matches]);

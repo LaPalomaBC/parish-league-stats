@@ -40,6 +40,7 @@ export default function ImportarPage() {
   const [selectedMatchType, setSelectedMatchType] = useState<'regular' | 'copa' | 'playoff'>('regular');
   const [manualMatchday, setManualMatchday] = useState(1);
   const [matchDate, setMatchDate] = useState('');  // YYYY-MM-DD
+  const [matchTime, setMatchTime] = useState('');  // HH:MM
 
   // Forfeit (incomparecencia) — manual selector
   const [manualForfeit, setManualForfeit] = useState<'none' | 'home' | 'away'>('none');
@@ -90,10 +91,12 @@ export default function ImportarPage() {
     ? (autoDetectedMatch?.matchday ?? 0)
     : manualMatchday;
 
-  // Auto-populate matchDate from detected calendar match
+  // Auto-populate matchDate and matchTime from detected calendar match
   const calendarDate = autoDetectedMatch?.matchDate || '';
-  // If matchDate hasn't been manually set, use the calendar date
+  const calendarTime = autoDetectedMatch?.matchTime || '';
+  // If not manually set, use the calendar values
   const effectiveMatchDate = matchDate || calendarDate;
+  const effectiveMatchTime = matchTime || calendarTime;
 
   // Duplicate check: it's a duplicate only if there are NO unplayed matches
   // between these teams in the calendar (all slots already filled)
@@ -196,6 +199,7 @@ export default function ImportarPage() {
         teams,
         fileName,
         effectiveMatchDate || undefined,
+        effectiveMatchTime || undefined,
       );
 
       // Save everything via context
@@ -236,6 +240,7 @@ export default function ImportarPage() {
       setImportResult(null);
       setManualForfeit('none');
       setMatchDate('');
+      setMatchTime('');
       setStep('preview');
     } else {
       handleReset();
@@ -261,6 +266,7 @@ export default function ImportarPage() {
     setImportedCount(0);
     setManualForfeit('none');
     setMatchDate('');
+    setMatchTime('');
   };
 
   const hasMoreInQueue = currentQueueIndex + 1 < queue.length;
@@ -600,6 +606,43 @@ export default function ImportarPage() {
                   }}>
                     <AlertCircle size={10} />
                     Fecha modificada manualmente
+                  </div>
+                )}
+              </div>
+
+              {/* Match Time */}
+              <div>
+                <label style={labelStyle}>⏰ Hora del partido</label>
+                <input
+                  type="time"
+                  value={effectiveMatchTime}
+                  onChange={(e) => setMatchTime(e.target.value)}
+                  style={{ ...selectStyle, width: 140 }}
+                />
+                {calendarTime && !matchTime && (
+                  <div style={{
+                    marginTop: 'var(--space-1)',
+                    fontSize: '10px',
+                    color: 'var(--color-success)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}>
+                    <Check size={10} />
+                    Hora del calendario
+                  </div>
+                )}
+                {matchTime && matchTime !== calendarTime && (
+                  <div style={{
+                    marginTop: 'var(--space-1)',
+                    fontSize: '10px',
+                    color: 'var(--color-accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}>
+                    <AlertCircle size={10} />
+                    Hora modificada manualmente
                   </div>
                 )}
               </div>

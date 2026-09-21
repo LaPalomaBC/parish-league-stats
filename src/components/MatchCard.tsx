@@ -38,7 +38,7 @@ export default function MatchCard({ match, showMatchday }: MatchCardProps) {
         </div>
       )}
 
-      {match.matchDate && (
+      {(match.matchDate || match.matchTime) && (
         <div style={{
           position: 'absolute',
           top: 6,
@@ -47,8 +47,20 @@ export default function MatchCard({ match, showMatchday }: MatchCardProps) {
           fontWeight: 500,
           color: 'var(--color-text-tertiary)',
           fontFamily: 'var(--font-body)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
         }}>
-          {formatDate(match.matchDate)}
+          {match.matchDate && <span>{formatDate(match.matchDate)}</span>}
+          {match.matchDate && match.matchTime && <span>·</span>}
+          {match.matchTime && (
+            <span style={{
+              fontWeight: 600,
+              color: match.isPlayed ? 'var(--color-text-secondary)' : 'var(--color-accent)',
+            }}>
+              {match.matchTime}
+            </span>
+          )}
         </div>
       )}
 
@@ -77,11 +89,27 @@ export default function MatchCard({ match, showMatchday }: MatchCardProps) {
             <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
               vs
             </div>
-            {match.matchDate && (
+            {match.matchTime ? (
+              <div style={{
+                fontSize: 'var(--text-xs)',
+                marginTop: '3px',
+                fontWeight: 700,
+                color: 'var(--color-accent)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                background: 'rgba(255, 149, 0, 0.08)',
+                padding: '1px 6px',
+                borderRadius: 'var(--radius-sm)',
+              }}>
+                <span style={{ fontSize: '10px' }}>⏰</span>
+                <span>{match.matchTime}</span>
+              </div>
+            ) : match.matchDate ? (
               <div style={{ fontSize: 'var(--text-xs)', marginTop: '2px' }}>
                 {formatDate(match.matchDate)}
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>

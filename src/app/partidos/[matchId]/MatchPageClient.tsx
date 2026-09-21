@@ -242,7 +242,9 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
           letterSpacing: '0.1em',
           marginBottom: 'var(--space-4)',
         }}>
-          Jornada {match.matchday} — {formatDate(match.matchDate)}
+          Jornada {match.matchday}
+          {match.matchDate && ` — ${formatDate(match.matchDate)}`}
+          {match.matchTime && ` · ${match.matchTime}`}
         </div>
 
         <div className="match-header-row">

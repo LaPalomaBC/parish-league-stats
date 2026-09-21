@@ -59,7 +59,8 @@ export function serializeLeagueContext(data: SerializeInput): string {
   playedMatches.forEach(m => {
     const h = teams.find(t => t.id === m.homeTeamId)?.shortName;
     const a = teams.find(t => t.id === m.awayTeamId)?.shortName;
-    const date = m.matchDate ? ` (${m.matchDate})` : '';
+    const timeStr = m.matchTime ? ` ${m.matchTime}` : '';
+    const date = m.matchDate ? ` (${m.matchDate}${timeStr})` : (m.matchTime ? ` (${m.matchTime})` : '');
     lines.push(`J${m.matchday}:${h} ${m.homeScore}-${m.awayScore} ${a}${date}`);
   });
 
@@ -70,7 +71,8 @@ export function serializeLeagueContext(data: SerializeInput): string {
     upcoming.sort((a, b) => a.matchday - b.matchday).forEach(m => {
       const h = teams.find(t => t.id === m.homeTeamId)?.shortName;
       const a = teams.find(t => t.id === m.awayTeamId)?.shortName;
-      const date = m.matchDate ? ` (${m.matchDate})` : '';
+      const timeStr = m.matchTime ? ` ${m.matchTime}` : '';
+      const date = m.matchDate ? ` (${m.matchDate}${timeStr})` : (m.matchTime ? ` (${m.matchTime})` : '');
       lines.push(`J${m.matchday}:${h} vs ${a}${date}`);
     });
   }

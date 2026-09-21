@@ -208,6 +208,7 @@ export function createMatch(
   matchType: 'regular' | 'copa' | 'playoff',
   existingMatches: Match[],
   matchDate?: string,
+  matchTime?: string,
 ): Match {
   // Check if there's an existing unplayed match between these teams (prefer same matchday)
   const existing = existingMatches.find(m =>
@@ -223,9 +224,10 @@ export function createMatch(
 
   // Resolve the date: explicit param > existing calendar date > today
   const resolvedDate = matchDate || existing?.matchDate || new Date().toISOString().split('T')[0];
+  const resolvedTime = matchTime !== undefined ? matchTime : existing?.matchTime;
 
   if (existing) {
-    // Update existing match — use the resolved date
+    // Update existing match — use the resolved date and time
     return {
       ...existing,
       homeTeamId,
@@ -236,6 +238,7 @@ export function createMatch(
       matchType,
       isPlayed: true,
       matchDate: resolvedDate,
+      ...(resolvedTime ? { matchTime: resolvedTime } : {}),
     };
   }
 
@@ -249,6 +252,7 @@ export function createMatch(
     id: `m-${String(maxId + 1).padStart(2, '0')}`,
     matchday,
     matchDate: resolvedDate,
+    ...(resolvedTime ? { matchTime: resolvedTime } : {}),
     homeTeamId,
     awayTeamId,
     homeScore,
@@ -509,6 +513,7 @@ export function executeImport(
   currentTeams: Team[],
   fileName: string,
   matchDate?: string,
+  matchTime?: string,
 ): ImportResult {
   // 0. Check for forfeit (incomparecencia)
   const homeForfeit = detectForfeit(acta.homePlayers);
@@ -526,7 +531,7 @@ export function executeImport(
   const finalAwayScore = forfeitInfo.awayScore;
 
   // 1. Create/update match with (possibly overridden) score
-  const match = createMatch(homeTeamId, awayTeamId, finalHomeScore, finalAwayScore, matchday, matchType, currentMatches, matchDate);
+  const match = createMatch(homeTeamId, awayTeamId, finalHomeScore, finalAwayScore, matchday, matchType, currentMatches, matchDate, matchTime);
 
   // 2. Match/create players for both teams (even for forfeits, to register them)
   let workingPlayers = [...currentPlayers];

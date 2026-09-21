@@ -28,6 +28,7 @@ export interface Match {
   id: string;
   matchday: number;
   matchDate: string;
+  matchTime?: string; // Formato "HH:MM", ej: "18:00"
   homeTeamId: string;
   awayTeamId: string;
   homeScore: number | null;
