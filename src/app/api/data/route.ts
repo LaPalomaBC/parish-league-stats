@@ -7,7 +7,7 @@
  *        Always writes to the ACTIVE season (no prefix)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import type { Player, Team, Match, PlayerStats, StandingRow, Season } from '@/lib/types';
 import type { ImportedActaRecord } from '@/lib/importEngine';
 
@@ -104,7 +104,7 @@ export async function PUT(request: NextRequest) {
         continue;
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('data_store')
         .upsert({
           key,

@@ -382,7 +382,7 @@ Estos archivos ya NO son la fuente primaria (Supabase lo es), pero `initData.ts`
 2. **No hay dark mode** — Solo tema light.
 3. **Sin i18n** — Todo hardcoded en español (rutas y UI).
 4. **Sin auth robusta** — La autenticación admin es una simple contraseña, no hay tokens JWT ni middleware de Next.js.
-5. **Supabase anon key es pública** — No se usan RLS policies (o se asume configuración en Supabase Dashboard).
+5. **Supabase con RLS habilitado** — `data_store` tiene Row-Level Security. Anon key solo puede SELECT (excepto `adminConfig`). Escritura requiere `service_role` key (server-only). Ver `supabase.ts` para los dos clientes.
 6. **Un solo CSS global** — No se usa Tailwind, ni CSS modules generalizados, ni CSS-in-JS. Todo va en `globals.css`.
 7. **`data.ts` tiene equipos hardcodeados** — Los 10 equipos están tanto en `data.ts` como en Supabase, pero el source of truth es Supabase.
 8. **El chat AI envía TODOS los datos** — `serializeContext.ts` serializa toda la liga como CSV y lo manda en cada petición al LLM. Puede ser pesado.
@@ -435,5 +435,6 @@ Estos archivos ya NO son la fuente primaria (Supabase lo es), pero `initData.ts`
 | 2026-09-20 | **Botón Atrás en Acta de Partido**: Añadido botón interactivo `← Atrás` en la vista de detalle de partido (`/partidos/[matchId]`) para volver de forma inmediata a la página anterior mediante `router.back()` (con fallback a `/calendario`). Extraído `BoxScoreTable` como componente independiente para cumplir las reglas de hooks de React 19/Next 16. |
 | 2026-09-21 | **Hora del Partido en Calendario y Configuración**: Añadido soporte para `matchTime?: string` en el modelo `Match`. Ahora se puede editar la hora (y fecha) en `/admin/calendario` tanto para partidos pendientes como jugados, así como en `/admin/importar`. En el calendario público (`/calendario`), la hora se muestra en las píldoras del calendario mensual (`J1 18:00 PAL vs SIE`), en las tarjetas de partido por jornada (`MatchCard`), y en el encabezado del acta (`/partidos/[matchId]`). Partidos del mismo día se ordenan cronológicamente por hora. |
 | 2026-09-21 | **Filtro por Equipos en Calendario**: Implementada barra de filtros interactiva por equipo en `/calendario`. Permite filtrar por uno o varios equipos de forma combinada (multiselección mediante chips táctiles con logos y colores de equipo, o botón "Todos los equipos"). El filtro aplica tanto a la vista por jornadas (mostrando solo los partidos de los equipos filtrados y empty state guiado si no juegan en esa jornada) como a la vista de calendario mensual (mostrando solo las píldoras y días de juego de esos equipos). Compatible con parámetro URL `?equipo=team-id`. |
+| 2026-09-23 | **Seguridad: RLS en Supabase**. Habilitado Row-Level Security en `data_store`. Anon key: solo SELECT (excepto `adminConfig`). Escritura: solo `service_role`. Añadida `SUPABASE_SERVICE_ROLE_KEY` a `.env.local` (server-only). Creado `supabaseAdmin` client en `supabase.ts`. Actualizados `/api/data` (PUT → supabaseAdmin), `/api/admin/auth` (todo → supabaseAdmin). Actualizados 5 scripts de `executions/` para usar service_role via dotenv. Eliminadas anon keys hardcodeadas de scripts. |
 
 

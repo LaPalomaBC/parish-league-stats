@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 async function getAdminPassword(): Promise<string> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('data_store')
       .select('value')
       .eq('key', 'adminConfig')
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'La nueva contraseña debe tener al menos 4 caracteres' }, { status: 400 });
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('data_store')
         .upsert({
           key: 'adminConfig',
