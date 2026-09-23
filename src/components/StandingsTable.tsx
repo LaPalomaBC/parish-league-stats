@@ -1,14 +1,21 @@
+'use client';
+
 import Link from 'next/link';
-import { StandingRow } from '@/lib/types';
+import { StandingRow, Team } from '@/lib/types';
 import { getTeam } from '@/lib/data';
+import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from './TeamLogo';
 
 interface StandingsTableProps {
   standings: StandingRow[];
   compact?: boolean;
+  teams?: Team[];
 }
 
-export default function StandingsTable({ standings, compact = false }: StandingsTableProps) {
+export default function StandingsTable({ standings, compact = false, teams: propTeams }: StandingsTableProps) {
+  const { teams: contextTeams } = useLeagueData();
+  const teamsList = propTeams && propTeams.length > 0 ? propTeams : contextTeams;
+
   return (
     <div className="table-container" id="standings-table">
       <table className="table">
@@ -32,7 +39,7 @@ export default function StandingsTable({ standings, compact = false }: Standings
         </thead>
         <tbody>
           {standings.map((row) => {
-            const team = getTeam(row.teamId);
+            const team = teamsList.find(t => t.id === row.teamId) || getTeam(row.teamId);
             if (!team) return null;
 
             const positionClass =

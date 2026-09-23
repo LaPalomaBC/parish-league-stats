@@ -12,11 +12,13 @@ export default function TeamLogo({ team, size = 'md' }: TeamLogoProps) {
 
   // If team has a real logo image, show it without the container box
   if (team.logoUrl) {
+    const sizeClass = size === 'md' ? '' : size;
     return (
       <img
         src={team.logoUrl}
         alt={team.name}
         title={team.name}
+        className={`team-logo-img ${sizeClass}`.trim()}
         style={{
           width: px,
           height: px,

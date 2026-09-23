@@ -543,8 +543,8 @@ export default function CalendarioPage() {
                   >
                     <span className="cal-day-num">{day.date.getDate()}</span>
                     {day.isCurrentMonth && dayMatches.slice(0, maxPills).map(m => {
-                      const home = getTeam(m.homeTeamId);
-                      const away = getTeam(m.awayTeamId);
+                      const home = teams.find(t => t.id === m.homeTeamId) || getTeam(m.homeTeamId);
+                      const away = teams.find(t => t.id === m.awayTeamId) || getTeam(m.awayTeamId);
                       const mdLabel = m.matchType === 'copa' ? 'COP'
                         : m.matchType === 'playoff' ? 'PO'
                         : `J${m.matchday}`;

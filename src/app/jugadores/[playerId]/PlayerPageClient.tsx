@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLeagueData } from '@/lib/DataContext';
 import { formatDate } from '@/lib/data';
-import type { PlayerStats } from '@/lib/types';
+import type { PlayerStats, Team } from '@/lib/types';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerGameLog from '@/components/PlayerGameLog';
 
@@ -130,6 +130,7 @@ export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
     matchId: string;
     matchday: number;
     date: string;
+    opponentTeam?: Team;
     opponentName: string;
     opponentShortName: string;
     opponentColor: string;
@@ -155,6 +156,7 @@ export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
         matchId: match.id,
         matchday: match.matchday,
         date: match.matchDate,
+        opponentTeam: opponent,
         opponentName: opponent?.name ?? 'Desconocido',
         opponentShortName: opponent?.shortName ?? '???',
         opponentColor: opponent?.primaryColor ?? '#999',

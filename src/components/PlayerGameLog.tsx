@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import type { PlayerStats } from '@/lib/types';
+import type { PlayerStats, Team } from '@/lib/types';
+import TeamLogo from '@/components/TeamLogo';
 
 interface GameLogEntry {
   matchId: string;
   matchday: number;
   date: string;
+  opponentTeam?: Team;
   opponentName: string;
   opponentShortName: string;
   opponentColor: string;
@@ -85,21 +87,25 @@ export default function PlayerGameLog({ entries, accentColor }: PlayerGameLogPro
                         }}>
                           J{entry.matchday}
                         </span>
-                        <div style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: 'var(--radius-sm)',
-                          background: entry.opponentColor,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '8px',
-                          fontWeight: 800,
-                          color: '#fff',
-                          flexShrink: 0,
-                        }}>
-                          {entry.opponentShortName}
-                        </div>
+                        {entry.opponentTeam ? (
+                          <TeamLogo team={entry.opponentTeam} size="xs" />
+                        ) : (
+                          <div style={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: 'var(--radius-sm)',
+                            background: entry.opponentColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '8px',
+                            fontWeight: 800,
+                            color: '#fff',
+                            flexShrink: 0,
+                          }}>
+                            {entry.opponentShortName}
+                          </div>
+                        )}
                         <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
                           {entry.isHome ? 'vs' : '@'} {entry.opponentShortName}
                         </span>

@@ -17,6 +17,7 @@ import StandingsTable from '@/components/StandingsTable';
 import MatchCard from '@/components/MatchCard';
 import TopScorersChart from '@/components/TopScorersChart';
 import StandingsChart from '@/components/StandingsChart';
+import TeamLogo from '@/components/TeamLogo';
 import { SeasonHeroSubtitle, SeasonPageFooter } from '@/components/SeasonLabels';
 
 export default function HomePage() {
@@ -113,7 +114,10 @@ export default function HomePage() {
           <div className="stat-label">Partidos Jugados</div>
         </div>
         <div className="card stat-card">
-          <Trophy size={22} style={{ color: '#FFD60A', marginBottom: 'var(--space-3)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+            <Trophy size={22} style={{ color: '#FFD60A' }} />
+            {leaderTeam && <TeamLogo team={leaderTeam} size="xs" />}
+          </div>
           <div className="stat-value">{leaderTeam?.shortName ?? '—'}</div>
           <div className="stat-label">Líder</div>
         </div>

@@ -1,16 +1,23 @@
+'use client';
+
 import Link from 'next/link';
-import { Match } from '@/lib/types';
+import { Match, Team } from '@/lib/types';
 import { getTeam, formatDate } from '@/lib/data';
+import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from './TeamLogo';
 
 interface MatchCardProps {
   match: Match;
   showMatchday?: boolean;
+  teams?: Team[];
 }
 
-export default function MatchCard({ match, showMatchday }: MatchCardProps) {
-  const homeTeam = getTeam(match.homeTeamId);
-  const awayTeam = getTeam(match.awayTeamId);
+export default function MatchCard({ match, showMatchday, teams: propTeams }: MatchCardProps) {
+  const { teams: contextTeams } = useLeagueData();
+  const teamsList = propTeams && propTeams.length > 0 ? propTeams : contextTeams;
+
+  const homeTeam = teamsList.find(t => t.id === match.homeTeamId) || getTeam(match.homeTeamId);
+  const awayTeam = teamsList.find(t => t.id === match.awayTeamId) || getTeam(match.awayTeamId);
 
   if (!homeTeam || !awayTeam) return null;
 

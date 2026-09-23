@@ -25,6 +25,7 @@ export const teams: Team[] = [
     primaryColor: '#E67E22',
     secondaryColor: '#F39C12',
     logoStyle: 'outlined',
+    logoUrl: '/teams/lab.png',
   },
   {
     id: 'team-03',
@@ -32,6 +33,7 @@ export const teams: Team[] = [
     shortName: 'TRI',
     primaryColor: '#8E8E93',
     secondaryColor: '#AEAEB2',
+    logoUrl: '/teams/tri.png',
   },
   {
     id: 'team-04',
@@ -39,6 +41,7 @@ export const teams: Team[] = [
     shortName: 'SIE',
     primaryColor: '#AF52DE',
     secondaryColor: '#BF5AF2',
+    logoUrl: '/teams/sie.png',
   },
   {
     id: 'team-05',
@@ -46,6 +49,7 @@ export const teams: Team[] = [
     shortName: 'SAL',
     primaryColor: '#34C759',
     secondaryColor: '#30D158',
+    logoUrl: '/teams/sal.png',
   },
   {
     id: 'team-06',
@@ -53,6 +57,7 @@ export const teams: Team[] = [
     shortName: 'BET',
     primaryColor: '#FF9500',
     secondaryColor: '#FFB340',
+    logoUrl: '/teams/bet.png',
   },
   {
     id: 'team-07',
@@ -60,6 +65,7 @@ export const teams: Team[] = [
     shortName: 'SNO',
     primaryColor: '#1B3A5C',
     secondaryColor: '#2C5A8C',
+    logoUrl: '/teams/sno.png',
   },
   {
     id: 'team-08',
@@ -74,6 +80,7 @@ export const teams: Team[] = [
     shortName: 'VAL',
     primaryColor: '#5AC8FA',
     secondaryColor: '#64D2FF',
+    logoUrl: '/teams/val.png',
   },
   {
     id: 'team-10',
@@ -81,6 +88,7 @@ export const teams: Team[] = [
     shortName: 'LAP',
     primaryColor: '#E8A317',
     secondaryColor: '#FFD60A',
+    logoUrl: '/teams/lap.png',
   },
 ];
 
