@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
 import { formatDate } from '@/lib/data';
 import type { PlayerStats, Team } from '@/lib/types';
@@ -57,12 +59,44 @@ function getAccentColor(hex: string): string {
 }
 
 export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
+  const router = useRouter();
   const { players, teams, matches, playerStats: allStats } = useLeagueData();
   const player = players.find((p) => p.id === playerId);
+  const playerTeam = player ? teams.find(t => t.id === player.teamId) : null;
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else if (playerTeam) {
+      router.push(`/equipos/${playerTeam.id}`);
+    } else {
+      router.push('/equipos');
+    }
+  };
 
   if (!player) {
     return (
       <div className="page-container">
+        <div style={{ marginBottom: 'var(--space-4)' }}>
+          <button
+            onClick={handleBack}
+            type="button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--color-primary)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            <ArrowLeft size={16} /> Atrás
+          </button>
+        </div>
         <div className="card" style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--color-text-tertiary)' }}>
           <div style={{ fontSize: '48px', marginBottom: 'var(--space-4)' }}>🔍</div>
           <p style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }}>Jugador no encontrado</p>
@@ -170,6 +204,32 @@ export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
 
   return (
     <div className="page-container">
+      {/* Back Button */}
+      <div className="animate-fade-in-up" style={{ marginBottom: 'var(--space-4)' }}>
+        <button
+          onClick={handleBack}
+          type="button"
+          aria-label="Volver a la página anterior"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--color-primary)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            fontWeight: 600,
+            transition: 'opacity var(--transition-fast)',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+        >
+          <ArrowLeft size={16} /> Atrás
+        </button>
+      </div>
+
       {/* Player Card Hero */}
       <div
         className="card animate-fade-in-up"

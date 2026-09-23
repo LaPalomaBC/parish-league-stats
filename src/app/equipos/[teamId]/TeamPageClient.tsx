@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
 import MatchCard from '@/components/MatchCard';
@@ -10,12 +12,41 @@ interface TeamPageClientProps {
 }
 
 export default function TeamPageClient({ teamId }: TeamPageClientProps) {
+  const router = useRouter();
   const { players: allPlayers, teams, matches, standings } = useLeagueData();
   const team = teams.find(t => t.id === teamId);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/equipos');
+    }
+  };
 
   if (!team) {
     return (
       <div className="page-container">
+        <div style={{ marginBottom: 'var(--space-4)' }}>
+          <button
+            onClick={handleBack}
+            type="button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--color-primary)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            <ArrowLeft size={16} /> Atrás
+          </button>
+        </div>
         <p>Equipo no encontrado</p>
       </div>
     );
@@ -30,6 +61,32 @@ export default function TeamPageClient({ teamId }: TeamPageClientProps) {
 
   return (
     <div className="page-container">
+      {/* Back Button */}
+      <div className="animate-fade-in-up" style={{ marginBottom: 'var(--space-4)' }}>
+        <button
+          onClick={handleBack}
+          type="button"
+          aria-label="Volver a la página anterior"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--color-primary)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            fontWeight: 600,
+            transition: 'opacity var(--transition-fast)',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+        >
+          <ArrowLeft size={16} /> Atrás
+        </button>
+      </div>
+
       {/* Team Header */}
       <div
         className="card animate-fade-in-up"
