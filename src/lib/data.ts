@@ -73,6 +73,7 @@ export const teams: Team[] = [
     shortName: 'BEG',
     primaryColor: '#FF3B30',
     secondaryColor: '#FF453A',
+    logoUrl: '/teams/beg.png',
   },
   {
     id: 'team-09',
