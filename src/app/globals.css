@@ -1031,10 +1031,13 @@ a:hover {
     padding: var(--space-3) !important;
   }
 
-  /* Hide team logos in standings on tiny screens */
+  /* Shrink team logos in standings on tiny screens (keep visible) */
   #standings-table .team-logo,
   #standings-table .team-logo-img {
-    display: none;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 7.5px;
+    border-radius: var(--radius-xs);
   }
 
   #standings-table td a {
