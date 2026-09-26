@@ -1,12 +1,15 @@
 'use client';
 
+import { useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { useLeagueData } from '@/lib/DataContext';
 import { formatDate } from '@/lib/data';
 import type { Player, PlayerStats } from '@/lib/types';
 import TeamLogo from '@/components/TeamLogo';
+import { CaptureButton } from '@/components/CaptureButton';
 
 interface MatchPageClientProps {
   matchId: string;
@@ -147,6 +150,39 @@ function BoxScoreTable({ teamStats, teamColor, players }: BoxScoreTableProps) {
 export default function MatchPageClient({ matchId }: MatchPageClientProps) {
   const router = useRouter();
   const { players, teams, matches, playerStats } = useLeagueData();
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [capturing, setCapturing] = useState(false);
+
+  const handleCapture = useCallback(async () => {
+    if (!captureRef.current || capturing) return;
+    setCapturing(true);
+    try {
+      const dataUrl = await toPng(captureRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        cacheBust: true,
+      });
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const filename = `partido-${matchId}`;
+      if (isMobile && navigator.share && navigator.canShare) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], `${filename}.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: filename, files: [file] });
+          setCapturing(false);
+          return;
+        }
+      }
+      const link = document.createElement('a');
+      link.download = `${filename}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Capture failed:', err);
+    }
+    setCapturing(false);
+  }, [capturing, matchId]);
   const match = matches.find(m => m.id === matchId);
 
   const handleBack = () => {
@@ -199,8 +235,13 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
 
   return (
     <div className="page-container">
-      {/* Back Button */}
-      <div className="animate-fade-in-up" style={{ marginBottom: 'var(--space-4)' }}>
+      {/* Top bar: Back button + Download */}
+      <div className="animate-fade-in-up" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 'var(--space-4)',
+      }}>
         <button
           onClick={handleBack}
           type="button"
@@ -223,7 +264,16 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
         >
           <ArrowLeft size={16} /> Atrás
         </button>
+        {match.isPlayed && (
+          <CaptureButton
+            onClick={handleCapture}
+            capturing={capturing}
+          />
+        )}
       </div>
+
+      {/* Capturable area — everything the download/share captures */}
+      <div ref={captureRef}>
 
       {/* Score Header */}
       <div
@@ -321,6 +371,20 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
           </div>
         </div>
       )}
+
+      {/* Watermark for captured image */}
+      <div style={{
+        textAlign: 'center',
+        padding: 'var(--space-4) 0 var(--space-2)',
+        fontSize: '11px',
+        color: 'var(--color-text-quaternary)',
+        fontFamily: 'var(--font-body)',
+        letterSpacing: '0.02em',
+      }}>
+        Parish League Stats · Liga Parroquial de Baloncesto
+      </div>
+
+      </div>{/* end captureRef */}
     </div>
   );
 }
