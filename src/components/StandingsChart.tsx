@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { useLeagueData } from '@/lib/DataContext';
+import { isBeforeCopa, sortStandingRows } from '@/lib/importEngine';
 
 interface StandingsChartProps {
   teamIds?: string[];
@@ -68,10 +69,10 @@ export default function StandingsChart({ teamIds, showTeamFilter }: StandingsCha
   const chartData = [];
 
   for (let md = 1; md <= maxMatchday; md++) {
-    const useH2H = md <= 9;
-    const playedUpToMd = matches.filter(m => m.isPlayed && m.matchday <= md);
+    const playedUpToMd = matches.filter(m => m.isPlayed && m.homeScore !== null && m.awayScore !== null && m.matchday <= md);
+    const useH2H = isBeforeCopa(playedUpToMd);
 
-    const teamPoints: { teamId: string; leaguePoints: number; pointsDiff: number; pointsFor: number }[] = [];
+    const teamPoints: { teamId: string; leaguePoints: number; wins: number; pointsDiff: number; pointsFor: number }[] = [];
 
     for (const team of teams) {
       const teamMatches = playedUpToMd.filter(
@@ -95,66 +96,10 @@ export default function StandingsChart({ teamIds, showTeamFilter }: StandingsCha
       });
 
       const leaguePoints = teamMatches.length + wins;
-      teamPoints.push({ teamId: team.id, leaguePoints, pointsDiff: pointsFor - pointsAgainst, pointsFor });
+      teamPoints.push({ teamId: team.id, leaguePoints, wins, pointsDiff: pointsFor - pointsAgainst, pointsFor });
     }
 
-    if (useH2H) {
-      // Sort by LP, then head-to-head for tied groups
-      teamPoints.sort((a, b) => b.leaguePoints - a.leaguePoints);
-
-      const sorted: typeof teamPoints = [];
-      let i = 0;
-      while (i < teamPoints.length) {
-        const group = [teamPoints[i]];
-        let j = i + 1;
-        while (j < teamPoints.length && teamPoints[j].leaguePoints === teamPoints[i].leaguePoints) {
-          group.push(teamPoints[j]);
-          j++;
-        }
-        if (group.length === 1) {
-          sorted.push(group[0]);
-        } else {
-          const tiedIds = group.map(g => g.teamId);
-          group.sort((a, b) => {
-            // Head-to-head between tied teams
-            let h2hWinsA = 0, h2hWinsB = 0;
-            let h2hDiffA = 0, h2hDiffB = 0;
-            for (const m of playedUpToMd) {
-              // Check A's h2h
-              if ((m.homeTeamId === a.teamId && tiedIds.includes(m.awayTeamId)) ||
-                  (m.awayTeamId === a.teamId && tiedIds.includes(m.homeTeamId))) {
-                const myS = m.homeTeamId === a.teamId ? (m.homeScore ?? 0) : (m.awayScore ?? 0);
-                const opS = m.homeTeamId === a.teamId ? (m.awayScore ?? 0) : (m.homeScore ?? 0);
-                h2hDiffA += myS - opS;
-                if (myS > opS) h2hWinsA++;
-              }
-              // Check B's h2h
-              if ((m.homeTeamId === b.teamId && tiedIds.includes(m.awayTeamId)) ||
-                  (m.awayTeamId === b.teamId && tiedIds.includes(m.homeTeamId))) {
-                const myS = m.homeTeamId === b.teamId ? (m.homeScore ?? 0) : (m.awayScore ?? 0);
-                const opS = m.homeTeamId === b.teamId ? (m.awayScore ?? 0) : (m.homeScore ?? 0);
-                h2hDiffB += myS - opS;
-                if (myS > opS) h2hWinsB++;
-              }
-            }
-            if (h2hWinsB !== h2hWinsA) return h2hWinsB - h2hWinsA;
-            if (h2hDiffB !== h2hDiffA) return h2hDiffB - h2hDiffA;
-            if (b.pointsDiff !== a.pointsDiff) return b.pointsDiff - a.pointsDiff;
-            return b.pointsFor - a.pointsFor;
-          });
-          sorted.push(...group);
-        }
-        i = j;
-      }
-      teamPoints.length = 0;
-      teamPoints.push(...sorted);
-    } else {
-      teamPoints.sort((a, b) => {
-        if (b.leaguePoints !== a.leaguePoints) return b.leaguePoints - a.leaguePoints;
-        if (b.pointsDiff !== a.pointsDiff) return b.pointsDiff - a.pointsDiff;
-        return b.pointsFor - a.pointsFor;
-      });
-    }
+    sortStandingRows(teamPoints, playedUpToMd, useH2H);
 
     const point: Record<string, number | string> = { matchday: `J${md}` };
     teamPoints.forEach((tp, index) => {

@@ -317,16 +317,95 @@ export function createPlayerStats(
 // ============================================
 
 /**
+ * True while the Copa has not been played yet (only regular-season matches, J1-J9).
+ * Before the Copa, head-to-head between tied teams is used as tiebreaker.
+ */
+export function isBeforeCopa(playedMatches: Match[]): boolean {
+  return playedMatches.every(m => m.matchday <= 9 && (m.matchType ?? 'regular') === 'regular');
+}
+
+export interface SortableStanding {
+  teamId: string;
+  leaguePoints: number;
+  wins: number;
+  pointsDiff: number;
+  pointsFor: number;
+}
+
+/**
+ * Sorts standing rows (in place) applying the league tiebreaker rules:
+ * 1. League points
+ * 2. Wins
+ * 3. Before the Copa: head-to-head between the tied teams — ONLY if every pair
+ *    in the tied group has already faced each other (h2h wins, then h2h diff).
+ *    If any pairing is missing, head-to-head is skipped.
+ * 4. Overall point differential (average)
+ * 5. Points for
+ */
+export function sortStandingRows<T extends SortableStanding>(
+  rows: T[],
+  playedMatches: Match[],
+  useHeadToHead: boolean,
+): T[] {
+  const byAverage = (a: T, b: T) =>
+    (b.pointsDiff - a.pointsDiff) || (b.pointsFor - a.pointsFor);
+
+  rows.sort((a, b) => (b.leaguePoints - a.leaguePoints) || (b.wins - a.wins) || byAverage(a, b));
+
+  if (!useHeadToHead) return rows;
+
+  const havePlayed = (a: string, b: string) => playedMatches.some(m =>
+    (m.homeTeamId === a && m.awayTeamId === b) || (m.homeTeamId === b && m.awayTeamId === a));
+
+  const sorted: T[] = [];
+  let i = 0;
+  while (i < rows.length) {
+    let j = i + 1;
+    while (j < rows.length && rows[j].leaguePoints === rows[i].leaguePoints && rows[j].wins === rows[i].wins) j++;
+    const group = rows.slice(i, j);
+
+    if (group.length > 1) {
+      const ids = group.map(r => r.teamId);
+      const complete = ids.every((a, x) => ids.slice(x + 1).every(b => havePlayed(a, b)));
+
+      if (complete) {
+        const h2h = new Map<string, { wins: number; diff: number }>();
+        ids.forEach(id => h2h.set(id, { wins: 0, diff: 0 }));
+        for (const m of playedMatches) {
+          if (!ids.includes(m.homeTeamId) || !ids.includes(m.awayTeamId)) continue;
+          const hs = m.homeScore ?? 0;
+          const as = m.awayScore ?? 0;
+          const home = h2h.get(m.homeTeamId)!;
+          const away = h2h.get(m.awayTeamId)!;
+          home.diff += hs - as;
+          away.diff += as - hs;
+          if (hs > as) home.wins++; else away.wins++;
+        }
+        group.sort((a, b) => {
+          const ha = h2h.get(a.teamId)!;
+          const hb = h2h.get(b.teamId)!;
+          return (hb.wins - ha.wins) || (hb.diff - ha.diff) || byAverage(a, b);
+        });
+      }
+      // Incomplete pairings → keep overall-average order from the initial sort
+    }
+
+    sorted.push(...group);
+    i = j;
+  }
+
+  rows.length = 0;
+  rows.push(...sorted);
+  return rows;
+}
+
+/**
  * Recalculates the full standings from scratch using all played matches.
- * 
- * Tiebreaker rules:
- * - Jornadas 1-9 (Liga Regular / Copa): head-to-head record between tied teams
- * - Jornadas 10+ (Playoffs): overall point differential (average)
+ * Tiebreakers: see sortStandingRows (H2H only before the Copa).
  */
 export function recalculateStandings(matches: Match[], teams: Team[]): StandingRow[] {
   const playedMatches = matches.filter(m => m.isPlayed && m.homeScore !== null && m.awayScore !== null);
-  const maxMatchday = playedMatches.length > 0 ? Math.max(...playedMatches.map(m => m.matchday)) : 0;
-  const useHeadToHead = maxMatchday <= 9;
+  const useHeadToHead = isBeforeCopa(playedMatches);
 
   const teamStats = new Map<string, {
     played: number;
@@ -383,28 +462,6 @@ export function recalculateStandings(matches: Match[], teams: Team[]): StandingR
     return `${last}${count}`;
   }
 
-  /**
-   * Head-to-head tiebreaker: given a group of tied teams, compute
-   * head-to-head wins between them to determine order.
-   * Returns a "h2h score" for each team — more h2h wins = higher rank.
-   */
-  function getHeadToHeadScore(teamId: string, tiedTeamIds: string[]): { h2hWins: number; h2hDiff: number } {
-    let h2hWins = 0;
-    let h2hPF = 0;
-    let h2hPA = 0;
-    for (const m of playedMatches) {
-      const isHome = m.homeTeamId === teamId && tiedTeamIds.includes(m.awayTeamId);
-      const isAway = m.awayTeamId === teamId && tiedTeamIds.includes(m.homeTeamId);
-      if (!isHome && !isAway) continue;
-      const myScore = isHome ? m.homeScore! : m.awayScore!;
-      const oppScore = isHome ? m.awayScore! : m.homeScore!;
-      h2hPF += myScore;
-      h2hPA += oppScore;
-      if (myScore > oppScore) h2hWins++;
-    }
-    return { h2hWins, h2hDiff: h2hPF - h2hPA };
-  }
-
   // Build standings array
   const rows: StandingRow[] = [];
   teamStats.forEach((stats, teamId) => {
@@ -422,55 +479,7 @@ export function recalculateStandings(matches: Match[], teams: Team[]): StandingR
     });
   });
 
-  if (useHeadToHead) {
-    // Phase 1 (J1-J9): Sort by leaguePoints, then head-to-head within tied groups
-    // First, sort by leaguePoints DESC
-    rows.sort((a, b) => b.leaguePoints - a.leaguePoints);
-
-    // Group teams with same leaguePoints
-    const sortedRows: StandingRow[] = [];
-    let i = 0;
-    while (i < rows.length) {
-      // Collect all teams with the same leaguePoints
-      const group: StandingRow[] = [rows[i]];
-      let j = i + 1;
-      while (j < rows.length && rows[j].leaguePoints === rows[i].leaguePoints) {
-        group.push(rows[j]);
-        j++;
-      }
-
-      if (group.length === 1) {
-        sortedRows.push(group[0]);
-      } else {
-        // Sort tied group by head-to-head
-        const tiedIds = group.map(r => r.teamId);
-        group.sort((a, b) => {
-          const h2hA = getHeadToHeadScore(a.teamId, tiedIds);
-          const h2hB = getHeadToHeadScore(b.teamId, tiedIds);
-          // More h2h wins = higher rank
-          if (h2hB.h2hWins !== h2hA.h2hWins) return h2hB.h2hWins - h2hA.h2hWins;
-          // Tied h2h wins → h2h point differential
-          if (h2hB.h2hDiff !== h2hA.h2hDiff) return h2hB.h2hDiff - h2hA.h2hDiff;
-          // Still tied → fall back to overall point differential
-          if (b.pointsDiff !== a.pointsDiff) return b.pointsDiff - a.pointsDiff;
-          return b.pointsFor - a.pointsFor;
-        });
-        sortedRows.push(...group);
-      }
-      i = j;
-    }
-
-    // Replace rows content with sorted
-    rows.length = 0;
-    rows.push(...sortedRows);
-  } else {
-    // Phase 2 (J10+): Sort by leaguePoints, then overall pointsDiff, then pointsFor
-    rows.sort((a, b) => {
-      if (b.leaguePoints !== a.leaguePoints) return b.leaguePoints - a.leaguePoints;
-      if (b.pointsDiff !== a.pointsDiff) return b.pointsDiff - a.pointsDiff;
-      return b.pointsFor - a.pointsFor;
-    });
-  }
+  sortStandingRows(rows, playedMatches, useHeadToHead);
 
   // Assign positions
   rows.forEach((row, idx) => {
