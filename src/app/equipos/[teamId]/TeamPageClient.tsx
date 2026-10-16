@@ -56,8 +56,18 @@ export default function TeamPageClient({ teamId }: TeamPageClientProps) {
   const teamMatches = matches.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId);
   const standing = standings.find(s => s.teamId === teamId);
 
-  const playedMatches = teamMatches.filter(m => m.isPlayed);
-  const upcomingMatches = teamMatches.filter(m => !m.isPlayed);
+  // Chronological sort by date + time; matches without date go last (by matchday)
+  const byDate = (a: typeof teamMatches[number], b: typeof teamMatches[number]) => {
+    if (!a.matchDate && !b.matchDate) return a.matchday - b.matchday;
+    if (!a.matchDate) return 1;
+    if (!b.matchDate) return -1;
+    const keyA = `${a.matchDate} ${a.matchTime || '99:99'}`;
+    const keyB = `${b.matchDate} ${b.matchTime || '99:99'}`;
+    return keyA.localeCompare(keyB) || a.matchday - b.matchday;
+  };
+
+  const playedMatches = teamMatches.filter(m => m.isPlayed).sort(byDate);
+  const upcomingMatches = teamMatches.filter(m => !m.isPlayed).sort(byDate);
 
   return (
     <div className="page-container">
