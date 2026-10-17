@@ -4,7 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { safeToPng } from '@/lib/captureImage';
 import { useLeagueData } from '@/lib/DataContext';
 import { formatDate } from '@/lib/data';
 import type { Player, PlayerStats } from '@/lib/types';
@@ -157,7 +157,7 @@ export default function MatchPageClient({ matchId }: MatchPageClientProps) {
     if (!captureRef.current || capturing) return;
     setCapturing(true);
     try {
-      const dataUrl = await toPng(captureRef.current, {
+      const dataUrl = await safeToPng(captureRef.current, {
         backgroundColor: '#ffffff',
         pixelRatio: 2,
         cacheBust: true,

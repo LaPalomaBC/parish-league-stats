@@ -5,7 +5,7 @@ import {
   Target, Shield, TrendingUp, Clock, Crosshair, Brain,
   Activity, Zap, Hand, Download, Share2, Loader2,
 } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { safeToPng } from '@/lib/captureImage';
 import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
 import type { Team } from '@/lib/types';
@@ -190,7 +190,7 @@ function TeamStatCard({ stat, items, teams }: {
     if (!cardRef.current || capturing) return;
     setCapturing(true);
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      const dataUrl = await safeToPng(cardRef.current, {
         backgroundColor: '#ffffff',
         pixelRatio: 2,
         cacheBust: true,

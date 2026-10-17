@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
-import { toPng } from 'html-to-image';
+import { safeToPng } from '@/lib/captureImage';
 import { Download, Share2, Loader2, Trophy, Info } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
 import StandingsTable from '@/components/StandingsTable';
@@ -44,7 +44,7 @@ function CaptureBtn({ onClick, busy }: { onClick: () => void; busy: boolean }) {
 async function captureAndExport(element: HTMLElement | null, filename: string) {
   if (!element) return;
   try {
-    const dataUrl = await toPng(element, {
+    const dataUrl = await safeToPng(element, {
       backgroundColor: '#ffffff',
       pixelRatio: 2,
       cacheBust: true,

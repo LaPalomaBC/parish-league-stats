@@ -4,7 +4,7 @@ import { useMemo, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, BarChart3, Download, Share2, Loader2 } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { safeToPng } from '@/lib/captureImage';
 import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
 import StatsFilterBar, { emptyFilters, filterMatchIds, type StatsFilters } from '@/components/StatsFilterBar';
@@ -118,7 +118,7 @@ export default function TeamStatDetailPage() {
     if (!chartRef.current || busyCapture) return;
     setBusyCapture(true);
     try {
-      const dataUrl = await toPng(chartRef.current, { backgroundColor: '#ffffff', pixelRatio: 2, cacheBust: true });
+      const dataUrl = await safeToPng(chartRef.current, { backgroundColor: '#ffffff', pixelRatio: 2, cacheBust: true });
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       if (isMobile && navigator.share && navigator.canShare) {
         const res = await fetch(dataUrl);
