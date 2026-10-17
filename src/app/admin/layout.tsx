@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Settings, Users, FileSpreadsheet, CalendarDays, Lock, Eye, EyeOff, LogOut, KeyRound, Archive } from 'lucide-react';
+import { Settings, Users, FileSpreadsheet, CalendarDays, Lock, Eye, EyeOff, LogOut, KeyRound, Archive, RefreshCw } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
 
 const adminTabs = [
@@ -29,6 +29,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [newPw, setNewPw] = useState('');
   const [changePwMsg, setChangePwMsg] = useState('');
   const [changePwError, setChangePwError] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   // Check existing session
   useEffect(() => {
@@ -57,6 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       if (res.ok && data.success) {
         sessionStorage.setItem(AUTH_KEY, 'true');
+        sessionStorage.setItem('parish-admin-pw', password.trim());
         setIsAuthenticated(true);
       } else {
         setError(data.error || 'Contraseña incorrecta');
@@ -98,6 +101,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     } catch {
       setChangePwError('Error de conexión');
+    }
+  };
+
+  const handleSyncFbm = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      // Get stored password from session (we're already authenticated)
+      const res = await fetch('/api/sync-fbm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password || sessionStorage.getItem('parish-admin-pw') || '' }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const parts: string[] = [];
+        if (data.scoresUpdated > 0) parts.push(`${data.scoresUpdated} resultado(s)`);
+        if (data.scheduleUpdated > 0) parts.push(`${data.scheduleUpdated} horario(s)`);
+        const msg = parts.length > 0
+          ? `✅ Sincronizado: ${parts.join(', ')} actualizado(s)`
+          : '✅ Todo al día — sin cambios';
+        setSyncResult({ ok: true, message: msg });
+        // Reload data if there were changes
+        if (data.scoresUpdated > 0 || data.scheduleUpdated > 0) {
+          window.location.reload();
+        }
+      } else {
+        setSyncResult({ ok: false, message: `❌ ${data.error || 'Error desconocido'}` });
+      }
+    } catch {
+      setSyncResult({ ok: false, message: '❌ Error de conexión' });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncResult(null), 8000);
     }
   };
 
@@ -294,7 +332,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Settings size={28} style={{ color: 'var(--color-primary)' }} />
             Panel de Administración
           </h1>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {syncResult && (
+              <span style={{
+                fontSize: 'var(--text-xs)',
+                color: syncResult.ok ? '#34c759' : 'var(--color-danger)',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-sm)',
+                background: syncResult.ok ? 'rgba(52,199,89,0.08)' : 'rgba(255,59,48,0.08)',
+                animation: 'fadeInUp 0.3s ease',
+              }}>
+                {syncResult.message}
+              </span>
+            )}
+            <button
+              onClick={handleSyncFbm}
+              disabled={syncing || isArchive}
+              title="Sincronizar resultados desde FBM"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border-light)',
+                background: syncing ? 'var(--color-primary-bg)' : 'var(--color-bg-secondary)',
+                color: syncing ? 'var(--color-primary)' : 'var(--color-text-tertiary)',
+                fontSize: 'var(--text-xs)', fontWeight: 500,
+                fontFamily: 'var(--font-body)',
+                cursor: syncing || isArchive ? 'wait' : 'pointer',
+                transition: 'all 0.2s',
+                opacity: isArchive ? 0.4 : 1,
+              }}
+              onMouseEnter={e => { if (!syncing && !isArchive) { e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.color = syncing ? 'var(--color-primary)' : 'var(--color-text-tertiary)'; e.currentTarget.style.borderColor = 'var(--color-border-light)'; }}
+            >
+              <RefreshCw size={14} style={syncing ? { animation: 'spin 1s linear infinite' } : undefined} />
+              {syncing ? 'Sincronizando…' : 'Sync FBM'}
+            </button>
             <button
               onClick={() => { setShowChangePassword(!showChangePassword); setChangePwMsg(''); setChangePwError(''); }}
               style={{
