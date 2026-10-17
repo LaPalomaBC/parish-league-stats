@@ -68,13 +68,72 @@ function isSafariLike(): boolean {
   return /iPhone|iPad|iPod/i.test(ua) || (/Safari/i.test(ua) && !/Chrome|Chromium|Android/i.test(ua));
 }
 
+/**
+ * Horizontally-scrollable containers (e.g. `.table-container` on mobile) only
+ * render their visible part, so wide tables get clipped ("Racha"/"PTS" cut off).
+ * Temporarily expand them (and the root) to their full scroll width.
+ */
+function expandScrollables(root: HTMLElement): { width: number; restore: () => void } {
+  const saved: { el: HTMLElement; style: string | null }[] = [];
+  const save = (el: HTMLElement) => saved.push({ el, style: el.getAttribute('style') });
+
+  const candidates = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+  const scrollables = candidates.filter(el => {
+    if (el.scrollWidth <= el.clientWidth + 1) return false;
+    const ox = getComputedStyle(el).overflowX;
+    return ox === 'auto' || ox === 'scroll';
+  });
+  // Expand innermost first so outer containers measure the already-expanded content.
+  scrollables.reverse().forEach(el => {
+    save(el);
+    const full = el.scrollWidth + (el.offsetWidth - el.clientWidth);
+    el.style.overflow = 'visible';
+    el.style.width = `${full}px`;
+    el.style.maxWidth = 'none';
+  });
+
+  // Root width = rightmost child edge + right padding (scrollWidth may omit padding).
+  const rootRect = root.getBoundingClientRect();
+  const padRight = parseFloat(getComputedStyle(root).paddingRight) || 0;
+  const contentRight = Array.from(root.children).reduce(
+    (max, child) => Math.max(max, child.getBoundingClientRect().right - rootRect.left),
+    0
+  );
+  let width = root.offsetWidth;
+  const needed = Math.ceil(contentRight + padRight);
+  if (needed > width + 1) {
+    if (!saved.some(s => s.el === root)) save(root);
+    width = needed;
+    root.style.width = `${width}px`;
+    root.style.maxWidth = 'none';
+  }
+
+  return {
+    width,
+    restore: () => {
+      saved.reverse().forEach(({ el, style }) => {
+        if (style === null) el.removeAttribute('style');
+        else el.setAttribute('style', style);
+      });
+    },
+  };
+}
+
 /** Drop-in replacement for `toPng` that works reliably on iOS Safari. */
 export async function safeToPng(
   element: HTMLElement,
   options: Parameters<typeof toPng>[1] = {}
 ): Promise<string> {
-  const opts = { backgroundColor: '#ffffff', pixelRatio: 2, ...options, cacheBust: false };
-  const restore = await inlineImages(element);
+  const restoreImages = await inlineImages(element);
+  const { width, restore: restoreLayout } = expandScrollables(element);
+  const opts = {
+    backgroundColor: '#ffffff',
+    pixelRatio: 2,
+    width,
+    height: element.offsetHeight,
+    ...options,
+    cacheBust: false,
+  };
   try {
     if (isSafariLike()) {
       await toPng(element, opts);
@@ -82,6 +141,7 @@ export async function safeToPng(
     }
     return await toPng(element, opts);
   } finally {
-    restore();
+    restoreLayout();
+    restoreImages();
   }
 }
