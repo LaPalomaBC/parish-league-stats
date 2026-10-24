@@ -11,6 +11,9 @@ import { supabase, supabaseAdmin } from '@/lib/supabase';
 import type { Player, Team, Match, PlayerStats, StandingRow, Season } from '@/lib/types';
 import type { ImportedActaRecord } from '@/lib/importEngine';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const VALID_KEYS = ['teams', 'players', 'matches', 'playerStats', 'standings', 'importHistory'];
 
 interface AllData {
@@ -79,7 +82,11 @@ export async function GET(request: NextRequest) {
       importHistory: (result.importHistory as ImportedActaRecord[]) || [],
     };
 
-    return NextResponse.json(allData);
+    return NextResponse.json(allData, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+      },
+    });
   } catch (error) {
     console.error('[API /data GET] Error:', error);
     return NextResponse.json({ error: 'Failed to read data' }, { status: 500 });

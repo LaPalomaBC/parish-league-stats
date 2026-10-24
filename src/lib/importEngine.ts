@@ -421,8 +421,21 @@ export function recalculateStandings(matches: Match[], teams: Team[]): StandingR
     teamStats.set(t.id, { played: 0, wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0, results: [] });
   });
 
+  // Process matches in chronological order (date → time → matchday) so the
+  // streak reflects when games were actually played, not their matchday
+  // (rescheduled/postponed games can be played after later matchdays).
+  const chronological = [...playedMatches].sort((a, b) => {
+    const da = a.matchDate || '9999-12-31';
+    const db = b.matchDate || '9999-12-31';
+    if (da !== db) return da < db ? -1 : 1;
+    const ta = a.matchTime || '99:99';
+    const tb = b.matchTime || '99:99';
+    if (ta !== tb) return ta < tb ? -1 : 1;
+    return (a.matchday ?? 0) - (b.matchday ?? 0);
+  });
+
   // Process each match
-  for (const match of playedMatches) {
+  for (const match of chronological) {
     const home = teamStats.get(match.homeTeamId);
     const away = teamStats.get(match.awayTeamId);
     if (!home || !away) continue;
