@@ -1103,6 +1103,78 @@ a:hover {
   }
 }
 
+/* ============================================
+   Capture Mode: Force desktop / landscape styles
+   ============================================ */
+[data-capturing="true"],
+.is-capturing {
+  overflow: visible !important;
+  background-color: #ffffff !important;
+}
+
+[data-capturing="true"] .table-container,
+.is-capturing .table-container {
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: none !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+[data-capturing="true"] table,
+.is-capturing table {
+  width: 100% !important;
+  max-width: none !important;
+  border-collapse: collapse !important;
+}
+
+[data-capturing="true"] #standings-table table,
+.is-capturing #standings-table table {
+  display: table !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  font-size: var(--text-sm) !important;
+}
+
+[data-capturing="true"] #standings-table th,
+[data-capturing="true"] #standings-table td,
+.is-capturing #standings-table th,
+.is-capturing #standings-table td {
+  padding: 12px 14px !important;
+  font-size: var(--text-sm) !important;
+  white-space: nowrap !important;
+}
+
+[data-capturing="true"] #standings-table .table th,
+.is-capturing #standings-table .table th {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+[data-capturing="true"] #standings-table .team-logo,
+[data-capturing="true"] #standings-table .team-logo-img,
+.is-capturing #standings-table .team-logo,
+.is-capturing #standings-table .team-logo-img {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 10px !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+[data-capturing="true"] #standings-table td a,
+.is-capturing #standings-table td a {
+  gap: 10px !important;
+}
+
+[data-capturing="true"] #standings-table .badge,
+.is-capturing #standings-table .badge {
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+}
+
+
 /* iOS safe area padding */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .page-container {

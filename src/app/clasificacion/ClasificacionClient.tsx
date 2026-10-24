@@ -41,13 +41,14 @@ function CaptureBtn({ onClick, busy }: { onClick: () => void; busy: boolean }) {
   );
 }
 
-async function captureAndExport(element: HTMLElement | null, filename: string) {
+async function captureAndExport(element: HTMLElement | null, filename: string, minWidth?: number) {
   if (!element) return;
   try {
     const dataUrl = await safeToPng(element, {
       backgroundColor: '#ffffff',
       pixelRatio: 2,
       cacheBust: true,
+      minWidth,
     });
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile && navigator.share && navigator.canShare) {
@@ -78,7 +79,7 @@ export default function ClasificacionClient() {
 
   const handleTableCapture = useCallback(async () => {
     setBusyTable(true);
-    await captureAndExport(tableRef.current, 'clasificacion-parish-league');
+    await captureAndExport(tableRef.current, 'clasificacion-parish-league', 1000);
     setBusyTable(false);
   }, []);
 
@@ -138,6 +139,18 @@ export default function ClasificacionClient() {
                 🏆 Clasificación — Parish League
               </h3>
               <StandingsTable standings={standings} />
+
+              {/* Watermark for captured image */}
+              <div style={{
+                textAlign: 'center',
+                padding: 'var(--space-3) 0 var(--space-1)',
+                fontSize: '11px',
+                color: 'var(--color-text-quaternary)',
+                fontFamily: 'var(--font-body)',
+                letterSpacing: '0.02em',
+              }}>
+                Parish League Stats · Liga Parroquial de Baloncesto
+              </div>
             </div>
           </>
         ) : (
