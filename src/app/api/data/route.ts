@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import type { Player, Team, Match, PlayerStats, StandingRow, Season } from '@/lib/types';
-import type { ImportedActaRecord } from '@/lib/importEngine';
+import { recalculateStandings, type ImportedActaRecord } from '@/lib/importEngine';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -103,6 +103,37 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // SERVER-SIDE STANDINGS GUARD:
+    // Standings are a mathematical projection of matches + teams.
+    // Never trust stale client-calculated standings. Whenever matches or standings
+    // are written to active season, recalculate canonical standings server-side.
+    if ('matches' in body && Array.isArray(body.matches)) {
+      try {
+        const canonicalMatches = body.matches as Match[];
+        const { data: teamsRow } = await supabaseAdmin
+          .from('data_store')
+          .select('value')
+          .eq('key', 'teams')
+          .single();
+        const canonicalTeams: Team[] = (teamsRow?.value as Team[]) || [];
+        body.standings = recalculateStandings(canonicalMatches, canonicalTeams);
+      } catch (err) {
+        console.error('[API /data PUT] Error auto-recalculating standings from matches:', err);
+      }
+    } else if ('standings' in body) {
+      try {
+        const [matchesRow, teamsRow] = await Promise.all([
+          supabaseAdmin.from('data_store').select('value').eq('key', 'matches').single(),
+          supabaseAdmin.from('data_store').select('value').eq('key', 'teams').single(),
+        ]);
+        const canonicalMatches: Match[] = (matchesRow.data?.value as Match[]) || [];
+        const canonicalTeams: Team[] = (teamsRow.data?.value as Team[]) || [];
+        body.standings = recalculateStandings(canonicalMatches, canonicalTeams);
+      } catch (err) {
+        console.error('[API /data PUT] Error auto-recalculating standings:', err);
+      }
+    }
 
     const writtenKeys: string[] = [];
     for (const [key, data] of Object.entries(body)) {
