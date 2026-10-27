@@ -1,9 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/sync-fbm",
-      "schedule": "*/30 7-13 * * 6"
-    }
-  ]
-}
-
