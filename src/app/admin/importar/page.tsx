@@ -178,17 +178,10 @@ export default function ImportarPage() {
     if (!parsedActa || !matchedHome || !matchedAway) return;
 
     try {
-      // Override acta scores if manual forfeit is selected
-      const importActa = manualForfeit !== 'none'
-        ? {
-            ...parsedActa,
-            homeScore: manualForfeit === 'home' ? 0 : 20,
-            awayScore: manualForfeit === 'away' ? 0 : 20,
-          }
-        : parsedActa;
-
+      // Pass manualForfeit to executeImport so the engine knows which team
+      // didn't show up. The engine handles score override (20-0) internally.
       const result = executeImport(
-        importActa,
+        parsedActa,
         matchedHome.id,
         matchedAway.id,
         effectiveMatchday,
@@ -200,6 +193,7 @@ export default function ImportarPage() {
         fileName,
         effectiveMatchDate || undefined,
         effectiveMatchTime || undefined,
+        manualForfeit !== 'none' ? manualForfeit : undefined,
       );
 
       // Save everything via context

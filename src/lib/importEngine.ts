@@ -522,6 +522,12 @@ export interface ImportResult {
 /**
  * Orchestrates the full import of a parsed acta into the system.
  * Returns all updated data arrays ready to be saved.
+ *
+ * @param manualForfeit - Optional manual forfeit override from the UI.
+ *   When set to 'home' or 'away', it takes priority over auto-detection.
+ *   This is critical when the acta has < 5 players for BOTH teams
+ *   (e.g. a forfeit acta where the absent team has 0 players listed),
+ *   because auto-detection would set both scores to 0.
  */
 export function executeImport(
   acta: ParsedActa,
@@ -536,17 +542,36 @@ export function executeImport(
   fileName: string,
   matchDate?: string,
   matchTime?: string,
+  manualForfeit?: 'home' | 'away' | 'none',
 ): ImportResult {
   // 0. Check for forfeit (incomparecencia)
+  // Manual selection from the UI takes priority over auto-detection.
+  // Auto-detection (< 5 players) is only used when no manual selection was made.
   const homeForfeit = detectForfeit(acta.homePlayers);
   const awayForfeit = detectForfeit(acta.awayPlayers);
-  const isForfeit = homeForfeit || awayForfeit;
+
+  let effectiveForfeitTeam: 'home' | 'away' | null = null;
+  if (manualForfeit && manualForfeit !== 'none') {
+    // User explicitly selected which team didn't show up
+    effectiveForfeitTeam = manualForfeit;
+  } else if (homeForfeit && !awayForfeit) {
+    effectiveForfeitTeam = 'home';
+  } else if (awayForfeit && !homeForfeit) {
+    effectiveForfeitTeam = 'away';
+  } else if (homeForfeit && awayForfeit) {
+    // Both teams have < 5 players — can't determine automatically.
+    // Without manual override, we can't decide, so no forfeit is applied.
+    // The UI should always prompt the user in this case.
+    effectiveForfeitTeam = null;
+  }
+
+  const isForfeit = effectiveForfeitTeam !== null;
 
   const forfeitInfo: ForfeitInfo = {
     isForfeit,
-    forfeitTeam: homeForfeit ? 'home' : awayForfeit ? 'away' : null,
-    homeScore: isForfeit ? (homeForfeit ? 0 : 20) : acta.homeScore,
-    awayScore: isForfeit ? (awayForfeit ? 0 : 20) : acta.awayScore,
+    forfeitTeam: effectiveForfeitTeam,
+    homeScore: isForfeit ? (effectiveForfeitTeam === 'home' ? 0 : 20) : acta.homeScore,
+    awayScore: isForfeit ? (effectiveForfeitTeam === 'away' ? 0 : 20) : acta.awayScore,
   };
 
   const finalHomeScore = forfeitInfo.homeScore;
