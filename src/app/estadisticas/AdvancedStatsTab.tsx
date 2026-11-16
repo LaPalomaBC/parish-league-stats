@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { Crosshair, Clock, Brain, Zap, TrendingUp, Shield, Target, Activity, Hand } from 'lucide-react';
+import { Crosshair, Clock, Brain, Zap, TrendingUp, Shield, Target, Activity, Hand, AlertTriangle } from 'lucide-react';
 import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
 import type { Team } from '@/lib/types';
 import {
-  calcTS, calcEFG, per48, calcUSG, calcAstTo, calcTovPct, calcGameScore,
+  calcTS, calcEFG, per48, calcUSG, calcAstTo, calcStlTo, calcTovPct, calcGameScore,
   calcTRBPct, calcStlPct, calcBlkPct, calcFloorPct, calcPPP,
   estimatePossessions,
   aggregatePlayerAdvanced,
@@ -40,12 +40,14 @@ const PER48_STATS: AdvStat[] = [
   { key: 'reb48', label: 'Rebotes / 48 min', shortLabel: 'REB/48', suffix: '', desc: true, icon: <Activity size={16} />, description: 'Rebotes proyectados a un partido completo de 48 min' },
   { key: 'ast48', label: 'Asistencias / 48 min', shortLabel: 'AST/48', suffix: '', desc: true, icon: <TrendingUp size={16} />, description: 'Asistencias proyectadas a un partido completo de 48 min' },
   { key: 'stl48', label: 'Recuperaciones / 48 min', shortLabel: 'STL/48', suffix: '', desc: true, icon: <Shield size={16} />, description: 'Recuperaciones proyectadas a un partido completo de 48 min' },
+  { key: 'to48', label: 'Pérdidas / 48 min', shortLabel: 'TO/48', suffix: '', desc: true, icon: <AlertTriangle size={16} />, description: 'Pérdidas proyectadas a un partido completo de 48 min' },
   { key: 'blk48', label: 'Tapones / 48 min', shortLabel: 'BLK/48', suffix: '', desc: true, icon: <Shield size={16} />, description: 'Tapones proyectados a un partido completo de 48 min' },
 ];
 
 const GAME_STATS: AdvStat[] = [
   { key: 'usg', label: 'Usage Rate', shortLabel: 'USG%', suffix: '%', desc: true, icon: <Zap size={16} />, description: '% de jugadas del equipo que consume el jugador en pista' },
   { key: 'astto', label: 'Ratio AST/TO', shortLabel: 'AST/TO', suffix: '', desc: true, icon: <Brain size={16} />, decimals: 2, description: 'Asistencias por cada pérdida — mide visión de juego y cuidado del balón' },
+  { key: 'stlto', label: 'Ratio STL/TO', shortLabel: 'STL/TO', suffix: '', desc: true, icon: <Shield size={16} />, decimals: 2, description: 'Recuperaciones por cada pérdida — balance entre robos y balones perdidos' },
   { key: 'tovpct', label: 'Turnover Rate', shortLabel: 'TOV%', suffix: '%', desc: false, icon: <Activity size={16} />, description: '% de posesiones que acaban en pérdida de balón (cuanto menos, mejor)' },
   { key: 'gamescore', label: 'Game Score', shortLabel: 'GmSc', suffix: '', desc: true, icon: <Zap size={16} />, description: 'Nota global por partido (Hollinger) — resume toda la producción en un solo número' },
 ];
@@ -107,6 +109,8 @@ export default function AdvancedStatsTab() {
         .map(p => ({ ...p, value: per48(p.ast, p.mins) })),
       stl48: [...playerAdvanced].sort((a, b) => per48(b.stl, b.mins) - per48(a.stl, a.mins))
         .map(p => ({ ...p, value: per48(p.stl, p.mins) })),
+      to48: [...playerAdvanced].sort((a, b) => per48(b.to, b.mins) - per48(a.to, a.mins))
+        .map(p => ({ ...p, value: per48(p.to, p.mins) })),
       blk48: [...playerAdvanced].sort((a, b) => per48(b.blk, b.mins) - per48(a.blk, a.mins))
         .map(p => ({ ...p, value: per48(p.blk, p.mins) })),
     };
@@ -120,6 +124,8 @@ export default function AdvancedStatsTab() {
       ).map(p => ({ ...p, value: calcUSG(p.fga, p.fta, p.to, p.mins, p.teamFga, p.teamFta, p.teamTo, p.teamMp) })),
       astto: [...playerAdvanced].sort((a, b) => calcAstTo(b.ast, b.to) - calcAstTo(a.ast, a.to))
         .map(p => ({ ...p, value: calcAstTo(p.ast, p.to) })),
+      stlto: [...playerAdvanced].sort((a, b) => calcStlTo(b.stl, b.to) - calcStlTo(a.stl, a.to))
+        .map(p => ({ ...p, value: calcStlTo(p.stl, p.to) })),
       tovpct: [...playerAdvanced].sort((a, b) => calcTovPct(a.fga, a.fta, a.to) - calcTovPct(b.fga, b.fta, b.to))
         .map(p => ({ ...p, value: calcTovPct(p.fga, p.fta, p.to) })),
       gamescore: [...playerAdvanced].sort((a, b) => {

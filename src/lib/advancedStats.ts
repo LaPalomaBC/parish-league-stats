@@ -52,6 +52,11 @@ export function calcAstTo(ast: number, to: number): number {
   return to > 0 ? ast / to : ast > 0 ? ast : 0;
 }
 
+/** Steal-to-Turnover Ratio — balance between defensive disruption and ball security */
+export function calcStlTo(stl: number, to: number): number {
+  return to > 0 ? stl / to : stl > 0 ? stl : 0;
+}
+
 /** Turnover Rate — % of possessions ending in turnover */
 export function calcTovPct(fga: number, fta: number, to: number): number {
   const denom = fga + 0.44 * fta + to;

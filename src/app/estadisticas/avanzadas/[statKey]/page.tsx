@@ -9,7 +9,7 @@ import { useLeagueData } from '@/lib/DataContext';
 import TeamLogo from '@/components/TeamLogo';
 import StatsFilterBar, { emptyFilters, filterMatchIds, type StatsFilters } from '@/components/StatsFilterBar';
 import {
-  calcTS, calcEFG, per48, calcUSG, calcAstTo, calcTovPct, calcGameScore,
+  calcTS, calcEFG, per48, calcUSG, calcAstTo, calcStlTo, calcTovPct, calcGameScore,
   calcFloorPct, calcPPP, calcTRBPct, calcStlPct, calcBlkPct,
   estimatePossessions, calcPace, calcORtg, calcDRtg,
   aggregatePlayerAdvanced, aggregateTeamAdvanced,
@@ -58,6 +58,9 @@ const STAT_DEFS: Record<string, StatDef> = {
   stl48: { title: 'Recuperaciones / 48 min', chartLabel: 'STL/48', suffix: '', desc: true, type: 'player',
            playerFn: p => per48(p.stl, p.mins),
            description: 'Recuperaciones proyectadas a un partido completo de 48 min' },
+  to48:  { title: 'Pérdidas / 48 min', chartLabel: 'TO/48', suffix: '', desc: true, type: 'player',
+           playerFn: p => per48(p.to, p.mins),
+           description: 'Pérdidas proyectadas a un partido completo de 48 min' },
   blk48: { title: 'Tapones / 48 min', chartLabel: 'BLK/48', suffix: '', desc: true, type: 'player',
            playerFn: p => per48(p.blk, p.mins),
            description: 'Tapones proyectados a un partido completo de 48 min' },
@@ -68,6 +71,9 @@ const STAT_DEFS: Record<string, StatDef> = {
   astto:    { title: 'Ratio AST/TO', chartLabel: 'AST/TO', suffix: '', desc: true, decimals: 2, type: 'player',
               playerFn: p => calcAstTo(p.ast, p.to),
               description: 'Asistencias por cada pérdida — mide visión de juego y cuidado del balón' },
+  stlto:    { title: 'Ratio STL/TO', chartLabel: 'STL/TO', suffix: '', desc: true, decimals: 2, type: 'player',
+              playerFn: p => calcStlTo(p.stl, p.to),
+              description: 'Recuperaciones por cada pérdida — balance entre robos y balones perdidos' },
   tovpct:   { title: 'Turnover Rate', chartLabel: 'TOV%', suffix: '%', desc: false, type: 'player',
               playerFn: p => calcTovPct(p.fga, p.fta, p.to),
               description: '% de posesiones que acaban en pérdida de balón (cuanto menos, mejor)' },
