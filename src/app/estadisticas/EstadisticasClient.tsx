@@ -40,6 +40,8 @@ export default function EstadisticasClient() {
       totalTurnovers: number;
       totalBlocks: number;
       totalFouls: number;
+      total2Made: number;
+      total2Attempted: number;
       totalFGMade: number;
       totalFGAttempted: number;
       total3Made: number;
@@ -53,6 +55,7 @@ export default function EstadisticasClient() {
         games: 0, totalPoints: 0, totalPointsAgainst: 0,
         totalRebounds: 0, totalAssists: 0, totalRecoveries: 0,
         totalTurnovers: 0, totalBlocks: 0, totalFouls: 0,
+        total2Made: 0, total2Attempted: 0,
         totalFGMade: 0, totalFGAttempted: 0,
         total3Made: 0, total3Attempted: 0,
         totalFTMade: 0, totalFTAttempted: 0,
@@ -80,6 +83,8 @@ export default function EstadisticasClient() {
           agg.totalTurnovers += ps.turnovers;
           agg.totalBlocks += ps.blocks;
           agg.totalFouls += ps.fouls;
+          agg.total2Made += ps.twoMade;
+          agg.total2Attempted += ps.twoAttempted;
           agg.totalFGMade += ps.twoMade + ps.threeMade;
           agg.totalFGAttempted += ps.twoAttempted + ps.threeAttempted;
           agg.total3Made += ps.threeMade;
@@ -108,6 +113,7 @@ export default function EstadisticasClient() {
       turnovers: rankTeams(a => a.totalTurnovers / a.games, false),
       blocks: rankTeams(a => a.totalBlocks / a.games),
       fgPct: rankTeams(a => a.totalFGAttempted > 0 ? (a.totalFGMade / a.totalFGAttempted) * 100 : 0),
+      twoPct: rankTeams(a => a.total2Attempted > 0 ? (a.total2Made / a.total2Attempted) * 100 : 0),
       threePct: rankTeams(a => a.total3Attempted > 0 ? (a.total3Made / a.total3Attempted) * 100 : 0),
       ftPct: rankTeams(a => a.totalFTAttempted > 0 ? (a.totalFTMade / a.totalFTAttempted) * 100 : 0),
       pointDiff: rankTeams(a => (a.totalPoints - a.totalPointsAgainst) / a.games),
@@ -120,6 +126,7 @@ export default function EstadisticasClient() {
       totalTurnovers: rankTeams(a => a.totalTurnovers),
       totalFouls: rankTeams(a => a.totalFouls),
       totalFGMade: rankTeams(a => a.totalFGMade),
+      total2Made: rankTeams(a => a.total2Made),
       total3Made: rankTeams(a => a.total3Made),
       totalFTMade: rankTeams(a => a.totalFTMade),
     };
@@ -317,6 +324,7 @@ export default function EstadisticasClient() {
             <TeamLeaderCard statKey="rebounds" title="Rebotes por partido" icon={<Hand size={18} />} items={teamDashboard.rebounds} suffix="" />
             <TeamLeaderCard statKey="assists" title="Asistencias por partido" icon={<Award size={18} />} items={teamDashboard.assists} suffix="" />
             <TeamLeaderCard statKey="fgPct" title="% Tiros de campo" icon={<Crosshair size={18} />} items={teamDashboard.fgPct} suffix="%" />
+            <TeamLeaderCard statKey="twoPct" title="% Tiros de 2" icon={<Crosshair size={18} />} items={teamDashboard.twoPct} suffix="%" />
             <TeamLeaderCard statKey="threePct" title="% Triples" icon={<Crosshair size={18} />} items={teamDashboard.threePct} suffix="%" />
             <TeamLeaderCard statKey="ftPct" title="% Tiros libres" icon={<Crosshair size={18} />} items={teamDashboard.ftPct} suffix="%" />
             <TeamLeaderCard statKey="blocks" title="Tapones por partido" icon={<Shield size={18} />} items={teamDashboard.blocks} suffix="" />
@@ -422,6 +430,7 @@ export default function EstadisticasClient() {
             <TotalTeamCard title="Recuperaciones totales" icon={<Shield size={18} />} items={teamDashboard.totalRecoveries} />
             <TotalTeamCard title="Tapones totales" icon={<Shield size={18} />} items={teamDashboard.totalBlocks} />
             <TotalTeamCard title="Tiros de campo anotados" icon={<Crosshair size={18} />} items={teamDashboard.totalFGMade} />
+            <TotalTeamCard title="Tiros de 2 anotados" icon={<Crosshair size={18} />} items={teamDashboard.total2Made} />
             <TotalTeamCard title="Triples anotados" icon={<Crosshair size={18} />} items={teamDashboard.total3Made} />
             <TotalTeamCard title="Tiros libres anotados" icon={<Crosshair size={18} />} items={teamDashboard.totalFTMade} />
             <TotalTeamCard title="Pérdidas totales" icon={<Zap size={18} />} items={teamDashboard.totalTurnovers} lowIsBetter />

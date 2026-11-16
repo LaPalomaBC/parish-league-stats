@@ -22,6 +22,7 @@ const STAT_CONFIG: Record<string, {
   rebounds:  { title: 'Rebotes por partido',   fn: a => a.totalRebounds / a.games,      desc: true,  suffix: '',  chartLabel: 'RPP' },
   assists:   { title: 'Asistencias por partido', fn: a => a.totalAssists / a.games,    desc: true,  suffix: '',  chartLabel: 'APP' },
   fgPct:     { title: '% Tiros de campo',     fn: a => a.totalFGAtt > 0 ? (a.totalFGMade / a.totalFGAtt) * 100 : 0, desc: true, suffix: '%', chartLabel: 'FG%' },
+  twoPct:    { title: '% Tiros de 2',         fn: a => a.total2Att > 0 ? (a.total2Made / a.total2Att) * 100 : 0,    desc: true, suffix: '%', chartLabel: '2P%' },
   threePct:  { title: '% Triples',            fn: a => a.total3Att > 0 ? (a.total3Made / a.total3Att) * 100 : 0,    desc: true, suffix: '%', chartLabel: '3P%' },
   ftPct:     { title: '% Tiros libres',       fn: a => a.totalFTAtt > 0 ? (a.totalFTMade / a.totalFTAtt) * 100 : 0, desc: true, suffix: '%', chartLabel: 'FT%' },
   blocks:    { title: 'Tapones por partido',   fn: a => a.totalBlocks / a.games,        desc: true,  suffix: '',  chartLabel: 'BPP' },
@@ -33,6 +34,7 @@ interface TeamAgg {
   games: number; totalPoints: number; totalPointsAgainst: number;
   totalRebounds: number; totalAssists: number; totalRecoveries: number;
   totalTurnovers: number; totalBlocks: number; totalFouls: number;
+  total2Made: number; total2Att: number;
   totalFGMade: number; totalFGAtt: number;
   total3Made: number; total3Att: number;
   totalFTMade: number; totalFTAtt: number;
@@ -55,6 +57,7 @@ export default function TeamStatDetailPage() {
         games: 0, totalPoints: 0, totalPointsAgainst: 0,
         totalRebounds: 0, totalAssists: 0, totalRecoveries: 0,
         totalTurnovers: 0, totalBlocks: 0, totalFouls: 0,
+        total2Made: 0, total2Att: 0,
         totalFGMade: 0, totalFGAtt: 0,
         total3Made: 0, total3Att: 0,
         totalFTMade: 0, totalFTAtt: 0,
@@ -80,6 +83,8 @@ export default function TeamStatDetailPage() {
           agg.totalTurnovers += ps.turnovers;
           agg.totalBlocks += ps.blocks;
           agg.totalFouls += ps.fouls;
+          agg.total2Made += ps.twoMade;
+          agg.total2Att += ps.twoAttempted;
           agg.totalFGMade += ps.twoMade + ps.threeMade;
           agg.totalFGAtt += ps.twoAttempted + ps.threeAttempted;
           agg.total3Made += ps.threeMade;

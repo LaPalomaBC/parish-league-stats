@@ -126,6 +126,9 @@ export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
         fgPct:
           stats.reduce((a, b) => a + b.twoMade + b.threeMade, 0) /
           Math.max(stats.reduce((a, b) => a + b.twoAttempted + b.threeAttempted, 0), 1) * 100,
+        twoPct:
+          stats.reduce((a, b) => a + b.twoMade, 0) /
+          Math.max(stats.reduce((a, b) => a + b.twoAttempted, 0), 1) * 100,
         threePct:
           stats.reduce((a, b) => a + b.threeMade, 0) /
           Math.max(stats.reduce((a, b) => a + b.threeAttempted, 0), 1) * 100,
@@ -736,11 +739,12 @@ export default function PlayerPageClient({ playerId }: PlayerPageClientProps) {
           </h2>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
             gap: 'var(--space-3)',
           }}>
             {[
               { label: 'Tiros de campo', value: avg.fgPct },
+              { label: 'Tiros de 2', value: avg.twoPct },
               { label: 'Triples', value: avg.threePct },
               { label: 'Tiros libres', value: avg.ftPct },
             ].map((shot) => (
