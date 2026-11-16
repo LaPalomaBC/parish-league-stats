@@ -13,6 +13,7 @@ interface PlayerAgg {
   playerId: string; name: string; teamId: string; games: number;
   pts: number; reb: number; ast: number; stl: number; blk: number;
   to: number; eff: number; fouls: number;
+  twoMade: number; twoAtt: number;
   fgMade: number; fgAtt: number; tpMade: number; tpAtt: number;
   ftMade: number; ftAtt: number; mins: number;
 }
@@ -33,6 +34,7 @@ const STAT_CONFIG: Record<string, {
   turnovers:  { title: 'Pérdidas de balón',    fn: p => p.to / p.games,   desc: true,  suffix: '',  chartLabel: 'PER/P' },
   efficient:  { title: 'Eficiencia',           fn: p => p.eff / p.games,  desc: true,  suffix: '',  chartLabel: 'VAL' },
   fgPct:      { title: '% Tiros de campo',     fn: p => p.fgAtt > 0 ? (p.fgMade / p.fgAtt) * 100 : 0,  desc: true, suffix: '%', chartLabel: 'FG%' },
+  twoPct:     { title: '% Tiros de 2',         fn: p => p.twoAtt > 0 ? (p.twoMade / p.twoAtt) * 100 : 0,  desc: true, suffix: '%', chartLabel: '2P%', minReq: p => p.twoAtt >= 3 },
   threePct:   { title: '% Triples',            fn: p => p.tpAtt > 0 ? (p.tpMade / p.tpAtt) * 100 : 0,  desc: true, suffix: '%', chartLabel: '3P%', minReq: p => p.tpAtt >= 3 },
   ftPct:      { title: '% Tiros libres',       fn: p => p.ftAtt > 0 ? (p.ftMade / p.ftAtt) * 100 : 0,  desc: true, suffix: '%', chartLabel: 'FT%', minReq: p => p.ftAtt >= 3 },
   minutes:    { title: 'Minutos por partido',   fn: p => p.mins / p.games, desc: true,  suffix: '',  chartLabel: 'MPP' },
@@ -61,6 +63,7 @@ export default function PlayerStatDetailPage() {
         playerMap.set(ps.playerId, {
           playerId: ps.playerId, name: player.name, teamId: player.teamId, games: 0,
           pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, eff: 0, fouls: 0,
+          twoMade: 0, twoAtt: 0,
           fgMade: 0, fgAtt: 0, tpMade: 0, tpAtt: 0, ftMade: 0, ftAtt: 0, mins: 0,
         });
       }
@@ -74,6 +77,8 @@ export default function PlayerStatDetailPage() {
       e.to += ps.turnovers;
       e.eff += ps.efficiency;
       e.fouls += ps.fouls;
+      e.twoMade += ps.twoMade;
+      e.twoAtt += ps.twoAttempted;
       e.fgMade += ps.twoMade + ps.threeMade;
       e.fgAtt += ps.twoAttempted + ps.threeAttempted;
       e.tpMade += ps.threeMade;

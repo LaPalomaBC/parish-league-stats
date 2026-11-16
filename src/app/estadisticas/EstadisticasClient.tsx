@@ -133,6 +133,7 @@ export default function EstadisticasClient() {
       playerId: string; name: string; teamId: string; games: number;
       pts: number; reb: number; ast: number; stl: number; blk: number;
       to: number; eff: number; fouls: number;
+      twoMade: number; twoAtt: number;
       fgMade: number; fgAtt: number; tpMade: number; tpAtt: number;
       ftMade: number; ftAtt: number; mins: number;
     }>();
@@ -144,6 +145,7 @@ export default function EstadisticasClient() {
         playerMap.set(ps.playerId, {
           playerId: ps.playerId, name: player.name, teamId: player.teamId, games: 0,
           pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, eff: 0, fouls: 0,
+          twoMade: 0, twoAtt: 0,
           fgMade: 0, fgAtt: 0, tpMade: 0, tpAtt: 0, ftMade: 0, ftAtt: 0, mins: 0,
         });
       }
@@ -157,6 +159,8 @@ export default function EstadisticasClient() {
       e.to += ps.turnovers;
       e.eff += ps.efficiency;
       e.fouls += ps.fouls;
+      e.twoMade += ps.twoMade;
+      e.twoAtt += ps.twoAttempted;
       e.fgMade += ps.twoMade + ps.threeMade;
       e.fgAtt += ps.twoAttempted + ps.threeAttempted;
       e.tpMade += ps.threeMade;
@@ -183,6 +187,7 @@ export default function EstadisticasClient() {
       turnovers: rankPlayers(p => p.to / p.games),
       efficient: rankPlayers(p => p.eff / p.games),
       fgPct: rankPlayers(p => p.fgAtt > 0 ? (p.fgMade / p.fgAtt) * 100 : 0),
+      twoPct: rankPlayers(p => p.twoAtt >= 3 ? (p.twoMade / p.twoAtt) * 100 : 0),
       threePct: rankPlayers(p => p.tpAtt >= 3 ? (p.tpMade / p.tpAtt) * 100 : 0),
       ftPct: rankPlayers(p => p.ftAtt >= 3 ? (p.ftMade / p.ftAtt) * 100 : 0),
       minutes: rankPlayers(p => p.mins / p.games),
@@ -196,6 +201,7 @@ export default function EstadisticasClient() {
       totalEff: rankPlayers(p => p.eff),
       totalMins: rankPlayers(p => p.mins),
       totalFgMade: rankPlayers(p => p.fgMade),
+      totalTwoMade: rankPlayers(p => p.twoMade),
       totalTpMade: rankPlayers(p => p.tpMade),
       totalFtMade: rankPlayers(p => p.ftMade),
     };
@@ -372,6 +378,7 @@ export default function EstadisticasClient() {
             <PlayerLeaderCard statKey="turnovers" title="Pérdidas de balón" icon={<AlertTriangle size={18} />} items={playerDashboard.turnovers} teams={teams} suffix="" />
             <PlayerLeaderCard statKey="efficient" title="Eficiencia" icon={<Zap size={18} />} items={playerDashboard.efficient} teams={teams} suffix="" />
             <PlayerLeaderCard statKey="fgPct" title="% Tiros de campo" icon={<Crosshair size={18} />} items={playerDashboard.fgPct} teams={teams} suffix="%" />
+            <PlayerLeaderCard statKey="twoPct" title="% Tiros de 2" icon={<Crosshair size={18} />} items={playerDashboard.twoPct} teams={teams} suffix="%" />
             <PlayerLeaderCard statKey="threePct" title="% Triples" icon={<Crosshair size={18} />} items={playerDashboard.threePct} teams={teams} suffix="%" />
             <PlayerLeaderCard statKey="ftPct" title="% Tiros libres" icon={<Crosshair size={18} />} items={playerDashboard.ftPct} teams={teams} suffix="%" />
             <PlayerLeaderCard statKey="minutes" title="Minutos por partido" icon={<BarChart3 size={18} />} items={playerDashboard.minutes} teams={teams} suffix="" />
@@ -454,6 +461,7 @@ export default function EstadisticasClient() {
             <TotalPlayerCard title="Valoración total" icon={<Zap size={18} />} items={playerDashboard.totalEff} teams={teams} />
             <TotalPlayerCard title="Minutos totales" icon={<BarChart3 size={18} />} items={playerDashboard.totalMins} teams={teams} />
             <TotalPlayerCard title="TC anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalFgMade} teams={teams} />
+            <TotalPlayerCard title="T2 anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalTwoMade} teams={teams} />
             <TotalPlayerCard title="Triples anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalTpMade} teams={teams} />
             <TotalPlayerCard title="TL anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalFtMade} teams={teams} />
             <TotalPlayerCard title="Pérdidas totales" icon={<AlertTriangle size={18} />} items={playerDashboard.totalTo} teams={teams} lowIsBetter />
