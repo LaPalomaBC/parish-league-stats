@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { BarChart3, Award, Target, Shield, Users, User, TrendingUp, Crosshair, Hand, Zap, Sparkles, Hash } from 'lucide-react';
+import { BarChart3, Award, Target, Shield, Users, User, TrendingUp, Crosshair, Hand, Zap, Sparkles, Hash, AlertTriangle } from 'lucide-react';
 import AdvancedStatsTab from './AdvancedStatsTab';
 import TeamAdvancedStatsTab from './TeamAdvancedStatsTab';
 
@@ -180,6 +180,7 @@ export default function EstadisticasClient() {
       assisters: rankPlayers(p => p.ast / p.games),
       stealers: rankPlayers(p => p.stl / p.games),
       blockers: rankPlayers(p => p.blk / p.games),
+      turnovers: rankPlayers(p => p.to / p.games),
       efficient: rankPlayers(p => p.eff / p.games),
       fgPct: rankPlayers(p => p.fgAtt > 0 ? (p.fgMade / p.fgAtt) * 100 : 0),
       threePct: rankPlayers(p => p.tpAtt >= 3 ? (p.tpMade / p.tpAtt) * 100 : 0),
@@ -368,6 +369,7 @@ export default function EstadisticasClient() {
             <PlayerLeaderCard statKey="assisters" title="Asistentes" icon={<Award size={18} />} items={playerDashboard.assisters} teams={teams} suffix="" />
             <PlayerLeaderCard statKey="stealers" title="Recuperaciones" icon={<Shield size={18} />} items={playerDashboard.stealers} teams={teams} suffix="" />
             <PlayerLeaderCard statKey="blockers" title="Taponadores" icon={<Shield size={18} />} items={playerDashboard.blockers} teams={teams} suffix="" />
+            <PlayerLeaderCard statKey="turnovers" title="Pérdidas de balón" icon={<AlertTriangle size={18} />} items={playerDashboard.turnovers} teams={teams} suffix="" />
             <PlayerLeaderCard statKey="efficient" title="Eficiencia" icon={<Zap size={18} />} items={playerDashboard.efficient} teams={teams} suffix="" />
             <PlayerLeaderCard statKey="fgPct" title="% Tiros de campo" icon={<Crosshair size={18} />} items={playerDashboard.fgPct} teams={teams} suffix="%" />
             <PlayerLeaderCard statKey="threePct" title="% Triples" icon={<Crosshair size={18} />} items={playerDashboard.threePct} teams={teams} suffix="%" />
@@ -454,7 +456,7 @@ export default function EstadisticasClient() {
             <TotalPlayerCard title="TC anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalFgMade} teams={teams} />
             <TotalPlayerCard title="Triples anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalTpMade} teams={teams} />
             <TotalPlayerCard title="TL anotados" icon={<Crosshair size={18} />} items={playerDashboard.totalFtMade} teams={teams} />
-            <TotalPlayerCard title="Pérdidas totales" icon={<Zap size={18} />} items={playerDashboard.totalTo} teams={teams} lowIsBetter />
+            <TotalPlayerCard title="Pérdidas totales" icon={<AlertTriangle size={18} />} items={playerDashboard.totalTo} teams={teams} lowIsBetter />
           </div>
         </div>
       )}

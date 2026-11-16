@@ -30,6 +30,7 @@ const STAT_CONFIG: Record<string, {
   assisters:  { title: 'Asistentes',           fn: p => p.ast / p.games,  desc: true,  suffix: '',  chartLabel: 'APP' },
   stealers:   { title: 'Recuperaciones',       fn: p => p.stl / p.games,  desc: true,  suffix: '',  chartLabel: 'RCpp' },
   blockers:   { title: 'Taponadores',          fn: p => p.blk / p.games,  desc: true,  suffix: '',  chartLabel: 'BPP' },
+  turnovers:  { title: 'Pérdidas de balón',    fn: p => p.to / p.games,   desc: true,  suffix: '',  chartLabel: 'PER/P' },
   efficient:  { title: 'Eficiencia',           fn: p => p.eff / p.games,  desc: true,  suffix: '',  chartLabel: 'VAL' },
   fgPct:      { title: '% Tiros de campo',     fn: p => p.fgAtt > 0 ? (p.fgMade / p.fgAtt) * 100 : 0,  desc: true, suffix: '%', chartLabel: 'FG%' },
   threePct:   { title: '% Triples',            fn: p => p.tpAtt > 0 ? (p.tpMade / p.tpAtt) * 100 : 0,  desc: true, suffix: '%', chartLabel: '3P%', minReq: p => p.tpAtt >= 3 },
